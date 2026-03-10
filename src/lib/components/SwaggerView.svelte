@@ -1,12 +1,31 @@
 <script lang="ts">
-  import { Copy, ChevronDown, ChevronRight, ExternalLink } from 'lucide-svelte';
+  import { Copy, ChevronDown, ChevronRight, ExternalLink, Upload } from 'lucide-svelte';
   import type { Collection, Endpoint } from '$lib/types';
+  import { addEndpointsFromOpenApi } from '$lib/stores/collections';
+  import { toasts } from '$lib/stores/toasts';
 
   interface Props {
     collection: Collection;
   }
 
   let { collection }: Props = $props();
+
+  let fileInput: HTMLInputElement;
+
+  async function handleOpenApiImport(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const spec = JSON.parse(text);
+      const count = addEndpointsFromOpenApi(collection.id, spec);
+      toasts.show('success', `Imported ${count} endpoint${count !== 1 ? 's' : ''}`);
+    } catch (err) {
+      toasts.show('error', `Import failed: ${err}`);
+    }
+    input.value = '';
+  }
 
   const baseUrl = $derived(`http://localhost:${collection.port}`);
 
@@ -74,6 +93,14 @@
   }
 </script>
 
+<input
+  type="file"
+  accept=".json,.yaml,.yml"
+  bind:this={fileInput}
+  onchange={handleOpenApiImport}
+  class="hidden"
+/>
+
 <div class="h-full overflow-y-auto bg-app">
   <div class="max-w-3xl mx-auto px-6 py-6 space-y-6">
 
@@ -92,8 +119,17 @@
             </span>
           </div>
         </div>
-        <div class="text-right shrink-0">
+        <div class="flex flex-col items-end gap-2 shrink-0">
           <span class="text-[10px] font-mono text-ink-dim">{collection.endpoints.length} endpoint{collection.endpoints.length !== 1 ? 's' : ''}</span>
+          <button
+            onclick={() => fileInput.click()}
+            class="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-krub
+                   bg-surface border border-line-strong rounded text-ink-muted hover:text-ink hover:border-accent transition-colors"
+            title="Import OpenAPI / Swagger spec"
+          >
+            <Upload size={10} />
+            Import OpenAPI
+          </button>
         </div>
       </div>
     </div>
