@@ -103,9 +103,14 @@
           {METHOD_BADGE[endpoint.method] ?? 'bg-surface text-ink-muted'}">
           {endpoint.method}
         </span>
-        <span class="flex-1 text-xs font-mono truncate
-          {activeId === endpoint.id ? 'text-ink' : 'text-ink-muted group-hover:text-ink'} transition-colors duration-150">
-          {endpoint.path}
+        <span class="flex-1 min-w-0 flex flex-col">
+          <span class="text-xs font-mono truncate
+            {activeId === endpoint.id ? 'text-ink' : 'text-ink-muted group-hover:text-ink'} transition-colors duration-150">
+            {endpoint.path}
+          </span>
+          {#if endpoint.description}
+            <span class="text-[10px] text-ink-dim truncate leading-tight">{endpoint.description}</span>
+          {/if}
         </span>
         <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 shrink-0">
           <div

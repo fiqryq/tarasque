@@ -20,6 +20,8 @@ pub struct Endpoint {
     pub path: String,
     pub scenarios: Vec<Scenario>,
     pub active_scenario_id: String,
+    #[serde(default)]
+    pub description: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

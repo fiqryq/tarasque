@@ -70,24 +70,33 @@
 
 <div class="flex flex-col h-full">
   <!-- Path bar -->
-  <div class="flex items-center gap-2 px-4 h-12 border-b border-line shrink-0">
-    <select
-      value={endpoint.method}
-      onchange={(e) => onUpdate({ ...endpoint, method: e.currentTarget.value as Endpoint['method'] })}
-      class="h-7 bg-surface text-xs font-mono font-bold px-2 border border-line-strong rounded
-             focus:outline-none focus:border-accent transition-colors duration-150 cursor-pointer
-             {METHOD_COLORS[endpoint.method]}"
-    >
-      {#each METHODS as m}
-        <option value={m} class="bg-surface text-ink">{m}</option>
-      {/each}
-    </select>
+  <div class="flex flex-col gap-1.5 px-4 py-2 border-b border-line shrink-0">
+    <div class="flex items-center gap-2">
+      <select
+        value={endpoint.method}
+        onchange={(e) => onUpdate({ ...endpoint, method: e.currentTarget.value as Endpoint['method'] })}
+        class="h-7 bg-surface text-xs font-mono font-bold px-2 border border-line-strong rounded
+               focus:outline-none focus:border-accent transition-colors duration-150 cursor-pointer
+               {METHOD_COLORS[endpoint.method]}"
+      >
+        {#each METHODS as m}
+          <option value={m} class="bg-surface text-ink">{m}</option>
+        {/each}
+      </select>
+      <input
+        value={endpoint.path}
+        oninput={(e) => onUpdate({ ...endpoint, path: e.currentTarget.value })}
+        placeholder="/your/path/:id"
+        class="flex-1 h-7 bg-surface text-ink text-xs font-mono px-3 border border-line-strong rounded
+               focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-ink-dim"
+      />
+    </div>
     <input
-      value={endpoint.path}
-      oninput={(e) => onUpdate({ ...endpoint, path: e.currentTarget.value })}
-      placeholder="/your/path/:id"
-      class="flex-1 h-7 bg-surface text-ink text-xs font-mono px-3 border border-line-strong rounded
-             focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-ink-dim"
+      value={endpoint.description ?? ''}
+      oninput={(e) => onUpdate({ ...endpoint, description: e.currentTarget.value || undefined })}
+      placeholder="Description (optional)"
+      class="w-full h-6 bg-surface text-ink-dim text-[11px] px-3 border border-line rounded
+             focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-ink-dim/40"
     />
   </div>
 

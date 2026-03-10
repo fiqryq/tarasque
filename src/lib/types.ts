@@ -14,6 +14,7 @@ export interface Endpoint {
   path: string;
   scenarios: Scenario[];
   active_scenario_id: string;
+  description?: string;
 }
 
 export interface Collection {

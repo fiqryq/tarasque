@@ -150,6 +150,7 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
                             path: path.clone(),
                             scenarios,
                             active_scenario_id: active_id,
+                            description: None,
                         });
                     }
                 }
