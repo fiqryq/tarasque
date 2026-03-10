@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Database, Activity, Settings } from 'lucide-svelte';
+  import { Database, Activity, Settings, FlaskConical } from 'lucide-svelte';
   import Sidebar from '$lib/components/sidebar/index.svelte';
   import RunningApis from '$lib/components/sidebar/RunningApis.svelte';
   import Editor from '$lib/components/editor/index.svelte';
@@ -9,17 +9,23 @@
   import LogPanel from '$lib/components/server/LogPanel.svelte';
   import SettingsModal from '$lib/components/SettingsModal.svelte';
   import Toast from '$lib/components/Toast.svelte';
+  import TestSuiteEditor from '$lib/components/editor/TestSuiteEditor.svelte';
+  import TestSuites from '$lib/components/sidebar/TestSuites.svelte';
   import { get } from 'svelte/store';
   import { loadCollections, activeCollection, collections } from '$lib/stores/collections';
   import { initLogListener } from '$lib/stores/logs';
   import { syncRunningServers } from '$lib/stores/server';
   import { logPanel } from '$lib/stores/logPanel';
   import { settings, applyTheme } from '$lib/stores/settings';
+  import { testSuites, loadTestSuites } from '$lib/stores/testSuites';
 
   let showSettings = $state(false);
-  type NavView = 'collections' | 'running';
+  type NavView = 'collections' | 'running' | 'tests';
   let activeNav = $state<NavView>('collections');
   let activeRunningCollectionId = $state<string | null>(null);
+  let activeSuiteId = $state<string | null>(null);
+
+  let activeSuite = $derived($testSuites.find((s) => s.id === activeSuiteId) ?? null);
 
   let selectedRunningCollection = $derived(
     activeRunningCollectionId ? $collections.find(c => c.id === activeRunningCollectionId) ?? null : null
@@ -42,6 +48,7 @@
     await syncRunningServers();
     settings.load();
     applyTheme(get(settings).theme);
+    loadTestSuites();
   });
 </script>
 
@@ -71,6 +78,14 @@
         >
           <Activity size={14} />
         </button>
+        <button
+          onclick={() => activeNav = 'tests'}
+          class="w-8 h-8 flex items-center justify-center rounded transition-colors duration-150
+                 {activeNav === 'tests' ? 'text-accent bg-accent/10' : 'text-ink-dim hover:text-ink hover:bg-hover'}"
+          title="Test Suites"
+        >
+          <FlaskConical size={14} />
+        </button>
       </div>
       <div class="pb-3">
         <button
@@ -87,10 +102,15 @@
     <div class="w-56 shrink-0 flex flex-col bg-surface border-r border-line">
       {#if activeNav === 'collections'}
         <Sidebar />
-      {:else}
+      {:else if activeNav === 'running'}
         <RunningApis
           selectedId={activeRunningCollectionId}
           onSelect={(id) => activeRunningCollectionId = id}
+        />
+      {:else}
+        <TestSuites
+          selectedId={activeSuiteId}
+          onSelect={(id) => activeSuiteId = id}
         />
       {/if}
     </div>
@@ -102,7 +122,7 @@
         <ServerPanel />
       </div>
 
-      <!-- Editor / Swagger view -->
+      <!-- Editor / Swagger view / Test suite editor -->
       <div class="flex-1 min-h-0">
         {#if activeNav === 'running'}
           {#if selectedRunningCollection}
@@ -114,6 +134,18 @@
               </div>
               <span class="font-krub text-sm text-ink-muted">Select a running API</span>
               <span class="text-xs text-ink-dim">Click a collection in the sidebar to view its docs</span>
+            </div>
+          {/if}
+        {:else if activeNav === 'tests'}
+          {#if activeSuite}
+            <TestSuiteEditor suite={activeSuite} />
+          {:else}
+            <div class="flex flex-col items-center justify-center h-full gap-2 text-center">
+              <div class="w-10 h-10 rounded-xl bg-surface flex items-center justify-center mb-1">
+                <FlaskConical size={18} class="text-ink-dim" />
+              </div>
+              <span class="font-krub text-sm text-ink-muted">No test suite selected</span>
+              <span class="text-xs text-ink-dim">Create a suite in the sidebar</span>
             </div>
           {/if}
         {:else if $activeCollection}
