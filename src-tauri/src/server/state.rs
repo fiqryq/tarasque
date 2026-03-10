@@ -8,6 +8,8 @@ use tokio::sync::oneshot;
 pub struct AppState {
     pub collection: Arc<RwLock<Collection>>,
     pub app_handle: tauri::AppHandle,
+    /// Per-server key-value store. Cleared on server restart.
+    pub store: Arc<RwLock<HashMap<String, serde_json::Value>>>,
 }
 
 /// Per-collection shutdown handles.

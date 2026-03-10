@@ -87,6 +87,7 @@ fn spawn_http_server(
             let state_data = web::Data::new(AppState {
                 collection: Arc::new(RwLock::new(collection)),
                 app_handle,
+                store: Arc::new(RwLock::new(HashMap::new())),
             });
 
             let bind_result = HttpServer::new(move || {
@@ -194,6 +195,7 @@ fn spawn_https_server(
             let state_data = web::Data::new(AppState {
                 collection: Arc::new(RwLock::new(collection)),
                 app_handle,
+                store: Arc::new(RwLock::new(HashMap::new())),
             });
 
             let bind_result = HttpServer::new(move || {
@@ -355,13 +357,24 @@ async fn mock_handler(
                     }
 
                     let duration = start.elapsed().as_millis() as u64;
-                    let body_rendered = template::TemplateEngine::render(
+                    let store_snapshot = state.store.read().await.clone();
+                    let (body_rendered, store_ops) = template::TemplateEngine::render(
                         &router::substitute_params(&scenario.body, &route_params),
                         &route_params,
                         &query_params,
                         &headers,
                         body_json.as_ref(),
+                        &store_snapshot,
                     );
+                    if !store_ops.is_empty() {
+                        let mut store = state.store.write().await;
+                        for op in store_ops {
+                            match op {
+                                template::StoreOp::Set(k, v) => { store.insert(k, v); }
+                                template::StoreOp::Delete(k) => { store.remove(&k); }
+                            }
+                        }
+                    }
 
                     let log = LogEntry {
                         timestamp: chrono::Utc::now().to_rfc3339(),

@@ -3,6 +3,11 @@ use rand::Rng;
 use std::collections::HashMap;
 use uuid::Uuid;
 
+pub enum StoreOp {
+    Set(String, serde_json::Value),
+    Delete(String),
+}
+
 pub struct TemplateEngine;
 
 impl TemplateEngine {
@@ -12,7 +17,8 @@ impl TemplateEngine {
         query: &HashMap<String, String>,
         headers: &HashMap<String, String>,
         body_json: Option<&serde_json::Value>,
-    ) -> String {
+        store: &HashMap<String, serde_json::Value>,
+    ) -> (String, Vec<StoreOp>) {
         let mut result = body.to_string();
 
         result = result.replace("{{uuid}}", &Uuid::new_v4().to_string());
@@ -46,7 +52,54 @@ impl TemplateEngine {
             Self::render_json_paths(&mut result, json, "request.body");
         }
 
-        result
+        // Store reads: {{store.key}}
+        for (key, value) in store {
+            let placeholder = format!("{{{{store.{}}}}}", key);
+            let value_str = match value {
+                serde_json::Value::String(s) => s.clone(),
+                _ => value.to_string(),
+            };
+            result = result.replace(&placeholder, &value_str);
+        }
+
+        // Store ops — collected and returned for the caller to apply
+        let mut ops = Vec::new();
+
+        // Write: {{store.set.key=value}}
+        loop {
+            if let Some(start) = result.find("{{store.set.") {
+                if let Some(rel_end) = result[start..].find("}}") {
+                    let inner = result[start + 12..start + rel_end].to_string();
+                    if let Some(eq) = inner.find('=') {
+                        let k = inner[..eq].to_string();
+                        let v = serde_json::Value::String(inner[eq + 1..].to_string());
+                        ops.push(StoreOp::Set(k, v));
+                    }
+                    result = format!("{}{}", &result[..start], &result[start + rel_end + 2..]);
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        // Delete: {{store.delete.key}}
+        loop {
+            if let Some(start) = result.find("{{store.delete.") {
+                if let Some(rel_end) = result[start..].find("}}") {
+                    let key = result[start + 15..start + rel_end].to_string();
+                    ops.push(StoreOp::Delete(key));
+                    result = format!("{}{}", &result[..start], &result[start + rel_end + 2..]);
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        (result, ops)
     }
 
     fn random_string(len: usize) -> String {
@@ -93,40 +146,31 @@ impl TemplateEngine {
 mod tests {
     use super::*;
 
+    fn render(body: &str) -> String {
+        TemplateEngine::render(body, &HashMap::new(), &HashMap::new(), &HashMap::new(), None, &HashMap::new()).0
+    }
+
     #[test]
     fn test_uuid() {
-        let result = TemplateEngine::render(
-            "{{uuid}}",
-            &HashMap::new(),
-            &HashMap::new(),
-            &HashMap::new(),
-            None,
-        );
-        assert_eq!(result.len(), 36);
+        assert_eq!(render("{{uuid}}").len(), 36);
     }
 
     #[test]
     fn test_timestamp() {
-        let result = TemplateEngine::render(
-            "{{timestamp}}",
-            &HashMap::new(),
-            &HashMap::new(),
-            &HashMap::new(),
-            None,
-        );
-        assert!(result.parse::<i64>().is_ok());
+        assert!(render("{{timestamp}}").parse::<i64>().is_ok());
     }
 
     #[test]
     fn test_request_params() {
         let mut params = HashMap::new();
         params.insert("id".to_string(), "123".to_string());
-        let result = TemplateEngine::render(
+        let (result, _) = TemplateEngine::render(
             r#"{"user_id": "{{request.params.id}}"}"#,
             &params,
             &HashMap::new(),
             &HashMap::new(),
             None,
+            &HashMap::new(),
         );
         assert_eq!(result, r#"{"user_id": "123"}"#);
     }
@@ -135,12 +179,13 @@ mod tests {
     fn test_request_query() {
         let mut query = HashMap::new();
         query.insert("page".to_string(), "1".to_string());
-        let result = TemplateEngine::render(
+        let (result, _) = TemplateEngine::render(
             r#"{"page": "{{request.query.page}}"}"#,
             &HashMap::new(),
             &query,
             &HashMap::new(),
             None,
+            &HashMap::new(),
         );
         assert_eq!(result, r#"{"page": "1"}"#);
     }
@@ -148,25 +193,73 @@ mod tests {
     #[test]
     fn test_request_body() {
         let body = serde_json::json!({"name": "John", "age": 30});
-        let result = TemplateEngine::render(
+        let (result, _) = TemplateEngine::render(
             r#"{"name": "{{request.body.name}}", "age": {{request.body.age}}}"#,
             &HashMap::new(),
             &HashMap::new(),
             &HashMap::new(),
             Some(&body),
+            &HashMap::new(),
         );
         assert_eq!(result, r#"{"name": "John", "age": 30}"#);
     }
 
     #[test]
     fn test_random() {
-        let result = TemplateEngine::render(
-            "{{random.int}}",
+        assert!(render("{{random.int}}").parse::<u32>().is_ok());
+    }
+
+    #[test]
+    fn store_read_substitutes_value() {
+        let store: HashMap<String, serde_json::Value> = [(
+            "token".to_string(),
+            serde_json::Value::String("abc123".to_string()),
+        )]
+        .into();
+        let (result, _) = TemplateEngine::render(
+            r#"{"token": "{{store.token}}"}"#,
             &HashMap::new(),
             &HashMap::new(),
             &HashMap::new(),
             None,
+            &store,
         );
-        assert!(result.parse::<u32>().is_ok());
+        assert_eq!(result, r#"{"token": "abc123"}"#);
+    }
+
+    #[test]
+    fn store_set_returns_op_and_removes_placeholder() {
+        let (result, ops) = TemplateEngine::render(
+            r#"{"ok": true}{{store.set.lastId=42}}"#,
+            &HashMap::new(),
+            &HashMap::new(),
+            &HashMap::new(),
+            None,
+            &HashMap::new(),
+        );
+        assert_eq!(result, r#"{"ok": true}"#);
+        assert_eq!(ops.len(), 1);
+        match &ops[0] {
+            StoreOp::Set(k, _) => assert_eq!(k, "lastId"),
+            _ => panic!("Expected Set op"),
+        }
+    }
+
+    #[test]
+    fn store_delete_returns_op_and_removes_placeholder() {
+        let (result, ops) = TemplateEngine::render(
+            r#"{"ok": true}{{store.delete.token}}"#,
+            &HashMap::new(),
+            &HashMap::new(),
+            &HashMap::new(),
+            None,
+            &HashMap::new(),
+        );
+        assert_eq!(result, r#"{"ok": true}"#);
+        assert_eq!(ops.len(), 1);
+        match &ops[0] {
+            StoreOp::Delete(k) => assert_eq!(k, "token"),
+            _ => panic!("Expected Delete op"),
+        }
     }
 }
