@@ -1,15 +1,27 @@
 <script lang="ts">
   import { Plus, Search } from 'lucide-svelte';
   import CollectionItem from './CollectionItem.svelte';
+  import CollectionSettingsModal from '$lib/components/CollectionSettingsModal.svelte';
+  import ImportExport from './ImportExport.svelte';
   import {
     collections,
     activeCollectionId,
     addCollection,
     deleteCollection,
   } from '$lib/stores/collections';
+  import type { Collection } from '$lib/types';
+  import { proxyStatus, proxyLoading, startProxy, stopProxy, refreshProxyStatus } from '$lib/stores/proxy';
+  import { onMount } from 'svelte';
 
   let newName = $state('');
   let creating = $state(false);
+  let settingsCollection = $state<Collection | null>(null);
+
+  onMount(() => {
+    refreshProxyStatus();
+    const interval = setInterval(refreshProxyStatus, 5000);
+    return () => clearInterval(interval);
+  });
 
   function handleCreate() {
     if (newName.trim()) {
@@ -59,6 +71,7 @@
         active={$activeCollectionId === collection.id}
         onSelect={() => activeCollectionId.set(collection.id)}
         onDelete={() => deleteCollection(collection.id)}
+        onSettings={() => settingsCollection = collection}
       />
     {/each}
 
@@ -68,4 +81,36 @@
       </div>
     {/if}
   </div>
+
+  <!-- Import/Export -->
+  <ImportExport />
+
+  <!-- Nginx Proxy Status -->
+  <div class="shrink-0 border-t border-line px-3 py-2.5 flex items-center gap-2">
+    <span class="w-1.5 h-1.5 rounded-full shrink-0 {
+      $proxyStatus === 'running' ? 'bg-run' :
+      $proxyStatus === 'stopped' ? 'bg-ink-dim' : 'bg-warn'
+    }"></span>
+    <span class="text-[10px] font-krub text-ink-dim flex-1 uppercase tracking-widest">nginx</span>
+    {#if $proxyLoading}
+      <span class="text-[10px] text-ink-dim">…</span>
+    {:else if $proxyStatus === 'running'}
+      <button
+        onclick={stopProxy}
+        class="text-[10px] font-krub text-ink-dim hover:text-err transition-colors"
+      >Stop</button>
+    {:else}
+      <button
+        onclick={startProxy}
+        class="text-[10px] font-krub text-ink-dim hover:text-run transition-colors"
+      >Start</button>
+    {/if}
+  </div>
 </div>
+
+{#if settingsCollection}
+  <CollectionSettingsModal 
+    collection={settingsCollection} 
+    onClose={() => settingsCollection = null} 
+  />
+{/if}
