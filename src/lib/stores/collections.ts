@@ -57,7 +57,15 @@ export function addCollection(name: string) {
   scheduleAutoSave();
 }
 
-export function deleteCollection(id: string) {
+export async function deleteCollection(id: string) {
+  const { stopServer, serverStatuses, serverErrors } = await import('./server');
+  const status = get(serverStatuses)[id];
+  if (status === 'running' || status === 'starting') {
+    try { await stopServer(id); } catch { /* ignore */ }
+  }
+  serverStatuses.update((s) => { const n = { ...s }; delete n[id]; return n; });
+  serverErrors.update((e) => { const n = { ...e }; delete n[id]; return n; });
+
   collections.update((c) => c.filter((col) => col.id !== id));
   activeCollectionId.update((current) => (current === id ? null : current));
   scheduleAutoSave();
@@ -73,6 +81,35 @@ export function renameCollection(id: string, name: string) {
 export function updateCollectionPort(id: string, port: number) {
   collections.update((cols) =>
     cols.map((c) => (c.id === id ? { ...c, port } : c))
+  );
+  scheduleAutoSave();
+}
+
+export function importCollections(imported: Collection[]) {
+  collections.update((cols) => [...cols, ...imported]);
+  if (imported.length > 0) {
+    activeCollectionId.set(imported[imported.length - 1].id);
+  }
+  scheduleAutoSave();
+}
+
+export function updateCollectionProxy(id: string, enabled: boolean, url: string, insecure: boolean) {
+  collections.update((cols) =>
+    cols.map((c) =>
+      c.id === id
+        ? { ...c, proxy_enabled: enabled, proxy_url: url || undefined, proxy_insecure: insecure }
+        : c
+    )
+  );
+  scheduleAutoSave();
+}
+
+export function updateCollectionAlias(
+  id: string,
+  updates: Partial<Pick<Collection, 'alias_enabled' | 'alias_hostname' | 'alias_port' | 'alias_cert_pem' | 'alias_key_pem'>>
+) {
+  collections.update((cols) =>
+    cols.map((c) => (c.id === id ? { ...c, ...updates } : c))
   );
   scheduleAutoSave();
 }

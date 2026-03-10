@@ -71,13 +71,13 @@
   <div class="flex items-center gap-2 px-4 h-12 border-b border-line shrink-0">
     <select
       value={endpoint.method}
-      onchange={(e) => onUpdate({ ...endpoint, method: e.currentTarget.value })}
+      onchange={(e) => onUpdate({ ...endpoint, method: e.currentTarget.value as Endpoint['method'] })}
       class="h-7 bg-surface text-xs font-mono font-bold px-2 border border-line-strong rounded
              focus:outline-none focus:border-accent transition-colors duration-150 cursor-pointer
              {METHOD_COLORS[endpoint.method]}"
     >
       {#each METHODS as m}
-        <option value={m} class="bg-[#1a1a1a] text-ink">{m}</option>
+        <option value={m} class="bg-surface text-ink">{m}</option>
       {/each}
     </select>
     <input

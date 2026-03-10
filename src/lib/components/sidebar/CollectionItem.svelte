@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Trash2, FolderOpen, Folder } from 'lucide-svelte';
+  import { Trash2, FolderOpen, Folder, Settings } from 'lucide-svelte';
+  import { serverStatuses } from '$lib/stores/server';
   import type { Collection } from '$lib/types';
 
   interface Props {
@@ -7,9 +8,13 @@
     active: boolean;
     onSelect: () => void;
     onDelete: () => void;
+    onSettings: () => void;
   }
 
-  let { collection, active, onSelect, onDelete }: Props = $props();
+  let { collection, active, onSelect, onDelete, onSettings }: Props = $props();
+
+  let running = $derived($serverStatuses[collection.id] === 'running');
+  let starting = $derived($serverStatuses[collection.id] === 'starting');
 </script>
 
 <button
@@ -27,9 +32,31 @@
 
   <span class="flex-1 truncate text-xs font-inter">{collection.name}</span>
 
+  <!-- Running / starting indicator -->
+  {#if running}
+    <span class="w-1.5 h-1.5 rounded-full bg-run animate-pulse shrink-0" title="Server running"></span>
+  {:else if starting}
+    <span class="w-1.5 h-1.5 rounded-full bg-warn animate-pulse shrink-0" title="Starting…"></span>
+  {/if}
+
   <span class="text-[9px] font-mono text-ink-dim tabular-nums px-1.5 py-0.5 rounded bg-surface shrink-0">
     :{collection.port}
   </span>
+
+  {#if collection.proxy_enabled}
+    <span class="text-[9px] font-mono text-amber-400 shrink-0" title="Proxy enabled">↗</span>
+  {/if}
+
+  <div
+    role="button"
+    tabindex="0"
+    class="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded
+           text-ink-dim hover:text-ink hover:bg-hover transition-all duration-150 shrink-0"
+    onclick={(e) => { e.stopPropagation(); onSettings(); }}
+    onkeydown={(e) => e.key === 'Enter' && onSettings()}
+  >
+    <Settings size={10} />
+  </div>
 
   <div
     role="button"

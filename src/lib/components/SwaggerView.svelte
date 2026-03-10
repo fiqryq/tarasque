@@ -1,0 +1,274 @@
+<script lang="ts">
+  import { Copy, ChevronDown, ChevronRight, ExternalLink } from 'lucide-svelte';
+  import type { Collection, Endpoint } from '$lib/types';
+
+  interface Props {
+    collection: Collection;
+  }
+
+  let { collection }: Props = $props();
+
+  const baseUrl = $derived(`http://localhost:${collection.port}`);
+
+  const METHOD_STYLE: Record<string, { text: string; bg: string; border: string }> = {
+    GET:    { text: 'text-emerald-300', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30' },
+    POST:   { text: 'text-blue-300',    bg: 'bg-blue-500/10',    border: 'border-blue-500/30'    },
+    PUT:    { text: 'text-amber-300',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30'   },
+    DELETE: { text: 'text-rose-300',    bg: 'bg-rose-500/10',    border: 'border-rose-500/30'    },
+    PATCH:  { text: 'text-teal-300',    bg: 'bg-teal-500/10',    border: 'border-teal-500/30'    },
+  };
+
+  const STATUS_STYLE: Record<number, string> = {};
+  function statusStyle(code: number): string {
+    if (code < 300) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+    if (code < 400) return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+    if (code < 500) return 'text-orange-400 bg-orange-500/10 border-orange-500/20';
+    return 'text-rose-400 bg-rose-500/10 border-rose-500/20';
+  }
+
+  const STATUS_TEXT: Record<number, string> = {
+    200: 'OK', 201: 'Created', 202: 'Accepted', 204: 'No Content',
+    400: 'Bad Request', 401: 'Unauthorized', 403: 'Forbidden',
+    404: 'Not Found', 409: 'Conflict', 422: 'Unprocessable Entity',
+    500: 'Internal Server Error', 502: 'Bad Gateway', 503: 'Service Unavailable',
+  };
+
+  let expanded = $state<Record<string, boolean>>({});
+
+  function toggle(id: string) {
+    expanded[id] = !expanded[id];
+  }
+
+  function copyUrl(endpoint: Endpoint) {
+    navigator.clipboard.writeText(`${baseUrl}${endpoint.path}`);
+  }
+
+  function openUrl(endpoint: Endpoint) {
+    const url = `${baseUrl}${endpoint.path}`;
+    window.open(url, '_blank');
+  }
+
+  function prettyBody(body: string): string {
+    if (!body.trim()) return '';
+    try { return JSON.stringify(JSON.parse(body), null, 2); }
+    catch { return body; }
+  }
+
+  // Group endpoints by first path segment
+  let groups = $derived((() => {
+    const map = new Map<string, Endpoint[]>();
+    for (const ep of collection.endpoints) {
+      const tag = ep.path.split('/').filter(Boolean)[0] ?? 'default';
+      if (!map.has(tag)) map.set(tag, []);
+      map.get(tag)!.push(ep);
+    }
+    return [...map.entries()].map(([tag, endpoints]) => ({ tag, endpoints }));
+  })());
+
+  let expandedGroups = $state<Record<string, boolean>>({});
+  function isGroupExpanded(tag: string) {
+    return expandedGroups[tag] !== false;
+  }
+  function toggleGroup(tag: string) {
+    expandedGroups[tag] = !isGroupExpanded(tag);
+  }
+</script>
+
+<div class="h-full overflow-y-auto bg-app">
+  <div class="max-w-3xl mx-auto px-6 py-6 space-y-6">
+
+    <!-- API Header -->
+    <div class="border border-line rounded-xl p-5 bg-surface">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h1 class="text-lg font-krub font-semibold text-ink">{collection.name}</h1>
+          <div class="flex items-center gap-2 mt-1.5">
+            <code class="text-xs font-mono text-ink-muted bg-app px-2 py-0.5 rounded border border-line">
+              {baseUrl}
+            </code>
+            <span class="flex items-center gap-1 text-[10px] font-mono text-run bg-run/10 px-2 py-0.5 rounded border border-run/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-run animate-pulse inline-block"></span>
+              running
+            </span>
+          </div>
+        </div>
+        <div class="text-right shrink-0">
+          <span class="text-[10px] font-mono text-ink-dim">{collection.endpoints.length} endpoint{collection.endpoints.length !== 1 ? 's' : ''}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Endpoint groups -->
+    {#if collection.endpoints.length === 0}
+      <div class="text-center py-12">
+        <p class="text-ink-dim text-sm">No endpoints defined in this collection.</p>
+      </div>
+    {:else}
+      {#each groups as { tag, endpoints } (tag)}
+        <div class="border border-line rounded-xl overflow-hidden">
+          <!-- Group header -->
+          <button
+            onclick={() => toggleGroup(tag)}
+            class="w-full flex items-center gap-3 px-4 py-3 bg-surface hover:bg-hover/30 transition-colors duration-150 border-b border-line"
+          >
+            {#if isGroupExpanded(tag)}
+              <ChevronDown size={13} class="text-ink-dim shrink-0" />
+            {:else}
+              <ChevronRight size={13} class="text-ink-dim shrink-0" />
+            {/if}
+            <span class="text-xs font-krub font-semibold text-ink uppercase tracking-widest">/{tag}</span>
+            <span class="ml-auto text-[10px] font-mono text-ink-dim">{endpoints.length}</span>
+          </button>
+
+          <!-- Endpoints -->
+          {#if isGroupExpanded(tag)}
+            <div class="divide-y divide-line/50">
+              {#each endpoints as endpoint (endpoint.id)}
+                {@const style = METHOD_STYLE[endpoint.method] ?? METHOD_STYLE.GET}
+                {@const isOpen = !!expanded[endpoint.id]}
+                {@const activeScenario = endpoint.scenarios.find(s => s.id === endpoint.active_scenario_id) ?? endpoint.scenarios[0]}
+
+                <!-- Endpoint row -->
+                <div class="bg-app/30">
+                  <button
+                    onclick={() => toggle(endpoint.id)}
+                    class="w-full flex items-center gap-3 px-4 py-3 hover:bg-hover/20 transition-colors duration-150 group"
+                  >
+                    <!-- Method badge -->
+                    <span class="text-[10px] font-mono font-bold w-14 text-center shrink-0 py-0.5 rounded border
+                                 {style.text} {style.bg} {style.border}">
+                      {endpoint.method}
+                    </span>
+
+                    <!-- Path -->
+                    <span class="flex-1 text-sm font-mono text-ink text-left">{endpoint.path}</span>
+
+                    <!-- Status hint -->
+                    {#if activeScenario}
+                      <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border {statusStyle(activeScenario.status)} shrink-0">
+                        {activeScenario.status}
+                      </span>
+                    {/if}
+
+                    <!-- Actions (copy, open) -->
+                    <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                      <span
+                        role="button"
+                        tabindex="0"
+                        onclick={(e) => { e.stopPropagation(); copyUrl(endpoint); }}
+                        onkeydown={(e) => e.key === 'Enter' && copyUrl(endpoint)}
+                        class="w-6 h-6 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors"
+                        title="Copy URL"
+                      >
+                        <Copy size={11} />
+                      </span>
+                      {#if endpoint.method === 'GET'}
+                        <span
+                          role="button"
+                          tabindex="0"
+                          onclick={(e) => { e.stopPropagation(); openUrl(endpoint); }}
+                          onkeydown={(e) => e.key === 'Enter' && openUrl(endpoint)}
+                          class="w-6 h-6 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors"
+                          title="Open in browser"
+                        >
+                          <ExternalLink size={11} />
+                        </span>
+                      {/if}
+                    </div>
+
+                    <ChevronDown
+                      size={12}
+                      class="text-ink-dim shrink-0 transition-transform duration-150 {isOpen ? 'rotate-0' : '-rotate-90'}"
+                    />
+                  </button>
+
+                  <!-- Expanded detail -->
+                  {#if isOpen}
+                    {@const paramsScenario = endpoint.scenarios.find(s => Object.keys(s.query_params ?? {}).length > 0)}
+                    <div class="border-t border-line/50 bg-app/60 px-4 py-4 space-y-4">
+
+                      <!-- Full URL -->
+                      <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-krub text-ink-dim uppercase tracking-widest w-20 shrink-0">URL</span>
+                        <code class="text-[11px] font-mono text-accent flex-1">{baseUrl}{endpoint.path}</code>
+                      </div>
+
+                      <!-- Query params (from first scenario that has them) -->
+                      {#if paramsScenario}
+                        <div>
+                          <span class="text-[9px] font-krub text-ink-dim uppercase tracking-widest block mb-2">Parameters</span>
+                          <div class="border border-line rounded-lg overflow-hidden">
+                            <div class="flex items-center px-3 py-1 bg-surface/80 border-b border-line/50">
+                              <span class="text-[9px] font-krub text-ink-dim uppercase w-28">Name</span>
+                              <span class="text-[9px] font-krub text-ink-dim uppercase w-20">In</span>
+                              <span class="text-[9px] font-krub text-ink-dim uppercase flex-1">Example</span>
+                            </div>
+                            {#each Object.entries(paramsScenario.query_params ?? {}) as [key, val] (key)}
+                              <div class="flex items-center px-3 py-1.5 border-b border-line/30 last:border-0 hover:bg-hover/20">
+                                <span class="text-[11px] font-mono text-accent w-28 truncate">{key}</span>
+                                <span class="text-[10px] font-mono text-ink-dim w-20">query</span>
+                                <span class="text-[11px] font-mono text-ink-muted flex-1">{val || '—'}</span>
+                              </div>
+                            {/each}
+                          </div>
+                        </div>
+                      {/if}
+
+                      <!-- Responses (all scenarios) -->
+                      <div>
+                        <span class="text-[9px] font-krub text-ink-dim uppercase tracking-widest block mb-2">Responses</span>
+                        <div class="space-y-2">
+                          {#each endpoint.scenarios as scenario (scenario.id)}
+                            <div class="border border-line rounded-lg overflow-hidden">
+                              <!-- Scenario header -->
+                              <div class="flex items-center gap-3 px-3 py-2 bg-surface/60 border-b border-line/50">
+                                <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded border {statusStyle(scenario.status)}">
+                                  {scenario.status} {STATUS_TEXT[scenario.status] ?? ''}
+                                </span>
+                                <span class="text-[11px] font-inter text-ink-muted flex-1">{scenario.name}</span>
+                                {#if scenario.id === endpoint.active_scenario_id}
+                                  <span class="text-[9px] font-krub text-accent bg-accent/10 px-1.5 py-0.5 rounded border border-accent/20">active</span>
+                                {/if}
+                                {#if scenario.delay_ms > 0}
+                                  <span class="text-[9px] font-mono text-ink-dim">{scenario.delay_ms}ms</span>
+                                {/if}
+                              </div>
+
+                              <!-- Response headers -->
+                              {#if Object.keys(scenario.headers).length > 0}
+                                <div class="px-3 py-2 border-b border-line/30">
+                                  {#each Object.entries(scenario.headers) as [k, v] (k)}
+                                    <div class="flex items-center gap-2 text-[10px] font-mono py-0.5">
+                                      <span class="text-ink-dim w-40 shrink-0 truncate">{k}</span>
+                                      <span class="text-ink-muted">{v}</span>
+                                    </div>
+                                  {/each}
+                                </div>
+                              {/if}
+
+                              <!-- Response body -->
+                              {#if scenario.body.trim()}
+                                <pre class="px-3 py-3 text-[11px] font-mono text-ink-muted leading-relaxed
+                                            max-h-48 overflow-y-auto whitespace-pre-wrap break-words
+                                            bg-app/40">{prettyBody(scenario.body)}</pre>
+                              {:else}
+                                <div class="px-3 py-2 text-[11px] text-ink-dim italic">Empty body</div>
+                              {/if}
+                            </div>
+                          {/each}
+                        </div>
+                      </div>
+
+                    </div>
+                  {/if}
+                </div>
+
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/each}
+    {/if}
+
+  </div>
+</div>

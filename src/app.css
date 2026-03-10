@@ -6,8 +6,8 @@
   html, body, #app { height: 100%; margin: 0; padding: 0; }
 
   body {
-    background-color: #181818;
-    color: #e4e4e4;
+    background-color: #1d1d1f;
+    color: #f5f5f7;
     font-family: 'Inter', sans-serif;
     font-size: 13px;
     -webkit-font-smoothing: antialiased;
@@ -15,17 +15,38 @@
     user-select: none;
   }
 
-  ::selection { background: #818cf833; color: #e4e4e4; }
+  ::selection { background: #0066cc33; color: #f5f5f7; }
 
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #333333; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #444444; }
+  ::-webkit-scrollbar-thumb { background: #48484a; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #636366; }
 
   input[type='number']::-webkit-inner-spin-button,
   input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; }
 
   input, textarea { user-select: text; }
 
-  *:focus-visible { outline: 1px solid #818cf840; outline-offset: 1px; }
+  *:focus-visible { outline: 1px solid #0066cc40; outline-offset: 1px; }
 }
+
+/* Light theme overrides */
+[data-theme="light"] {
+  --tw-bg-opacity: 1;
+}
+
+[data-theme="light"] body {
+  background-color: #f2f2f7;
+  color: #1d1d1f;
+}
+
+[data-theme="light"] .bg-app    { background-color: #f2f2f7 !important; }
+[data-theme="light"] .bg-surface { background-color: #ffffff !important; }
+[data-theme="light"] .bg-hover  { background-color: #e5e5ea !important; }
+[data-theme="light"] .border-line { border-color: #d1d1d6 !important; }
+[data-theme="light"] .border-line-strong { border-color: #aeaeb2 !important; }
+[data-theme="light"] .text-ink       { color: #1d1d1f !important; }
+[data-theme="light"] .text-ink-muted { color: #3a3a3c !important; }
+[data-theme="light"] .text-ink-dim   { color: #636366 !important; }
+[data-theme="light"] .bg-\[#141414\]  { background-color: #e5e5ea !important; }
+[data-theme="light"] .bg-\[#191919\]  { background-color: #f2f2f7 !important; }
