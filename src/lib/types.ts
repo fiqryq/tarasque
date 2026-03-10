@@ -1,3 +1,10 @@
+export interface MatchRule {
+  source: 'header' | 'query' | 'body' | 'path_param';
+  key: string;
+  operator: 'eq' | 'contains' | 'exists' | 'not_exists';
+  value?: string;
+}
+
 export interface Scenario {
   id: string;
   name: string;
@@ -6,14 +13,23 @@ export interface Scenario {
   headers: Record<string, string>;
   query_params: Record<string, string>;
   body: string;
+  match_rules?: MatchRule[];
 }
 
 export interface Endpoint {
   id: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
   path: string;
   scenarios: Scenario[];
   active_scenario_id: string;
+  description?: string;
+  sequence_mode?: boolean;
+}
+
+export interface Environment {
+  id: string;
+  name: string;
+  variables: Record<string, string>;
 }
 
 export interface Collection {
@@ -31,6 +47,9 @@ export interface Collection {
   alias_port?: number;
   alias_cert_pem?: string;
   alias_key_pem?: string;
+  // Environments
+  environments?: Environment[];
+  active_env_id?: string;
 }
 
 export interface AppData {
@@ -62,7 +81,7 @@ export interface TestAssertion {
 export interface TestCase {
   id: string;
   name: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
   path: string;
   headers?: Record<string, string>;
   body?: string;

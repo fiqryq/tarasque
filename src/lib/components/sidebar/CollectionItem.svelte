@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Trash2, FolderOpen, Folder, Settings } from 'lucide-svelte';
+  import { Trash2, FolderOpen, Folder, Settings, Leaf } from 'lucide-svelte';
   import { serverStatuses } from '$lib/stores/server';
   import type { Collection } from '$lib/types';
 
@@ -9,9 +9,10 @@
     onSelect: () => void;
     onDelete: () => void;
     onSettings: () => void;
+    onEnvironments: () => void;
   }
 
-  let { collection, active, onSelect, onDelete, onSettings }: Props = $props();
+  let { collection, active, onSelect, onDelete, onSettings, onEnvironments }: Props = $props();
 
   let running = $derived($serverStatuses[collection.id] === 'running');
   let starting = $derived($serverStatuses[collection.id] === 'starting');
@@ -47,6 +48,17 @@
     <span class="text-[9px] font-mono text-amber-400 shrink-0" title="Proxy enabled">↗</span>
   {/if}
 
+  <div
+    role="button"
+    tabindex="0"
+    class="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded
+           text-ink-dim hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-150 shrink-0"
+    onclick={(e) => { e.stopPropagation(); onEnvironments(); }}
+    onkeydown={(e) => e.key === 'Enter' && onEnvironments()}
+    title="Environments"
+  >
+    <Leaf size={10} />
+  </div>
   <div
     role="button"
     tabindex="0"

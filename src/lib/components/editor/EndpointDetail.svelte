@@ -11,14 +11,16 @@
 
   let { endpoint, collectionId, onUpdate }: Props = $props();
 
-  const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] as const;
+  const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] as const;
 
   const METHOD_COLORS: Record<string, string> = {
-    GET:    'text-emerald-400',
-    POST:   'text-violet-400',
-    PUT:    'text-sky-400',
-    DELETE: 'text-rose-400',
-    PATCH:  'text-amber-400',
+    GET:     'text-emerald-400',
+    POST:    'text-violet-400',
+    PUT:     'text-sky-400',
+    DELETE:  'text-rose-400',
+    PATCH:   'text-amber-400',
+    HEAD:    'text-teal-400',
+    OPTIONS: 'text-orange-400',
   };
 
   let localScenarioId = $state<string | null>(null);
@@ -68,25 +70,47 @@
 
 <div class="flex flex-col h-full">
   <!-- Path bar -->
-  <div class="flex items-center gap-2 px-4 h-12 border-b border-line shrink-0">
-    <select
-      value={endpoint.method}
-      onchange={(e) => onUpdate({ ...endpoint, method: e.currentTarget.value as Endpoint['method'] })}
-      class="h-7 bg-surface text-xs font-mono font-bold px-2 border border-line-strong rounded
-             focus:outline-none focus:border-accent transition-colors duration-150 cursor-pointer
-             {METHOD_COLORS[endpoint.method]}"
-    >
-      {#each METHODS as m}
-        <option value={m} class="bg-surface text-ink">{m}</option>
-      {/each}
-    </select>
+  <div class="flex flex-col gap-1.5 px-4 py-2 border-b border-line shrink-0">
+    <div class="flex items-center gap-2">
+      <select
+        value={endpoint.method}
+        onchange={(e) => onUpdate({ ...endpoint, method: e.currentTarget.value as Endpoint['method'] })}
+        class="h-7 bg-surface text-xs font-mono font-bold px-2 border border-line-strong rounded
+               focus:outline-none focus:border-accent transition-colors duration-150 cursor-pointer
+               {METHOD_COLORS[endpoint.method]}"
+      >
+        {#each METHODS as m}
+          <option value={m} class="bg-surface text-ink">{m}</option>
+        {/each}
+      </select>
+      <input
+        value={endpoint.path}
+        oninput={(e) => onUpdate({ ...endpoint, path: e.currentTarget.value })}
+        placeholder="/your/path/:id"
+        class="flex-1 h-7 bg-surface text-ink text-xs font-mono px-3 border border-line-strong rounded
+               focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-ink-dim"
+      />
+    </div>
     <input
-      value={endpoint.path}
-      oninput={(e) => onUpdate({ ...endpoint, path: e.currentTarget.value })}
-      placeholder="/your/path/:id"
-      class="flex-1 h-7 bg-surface text-ink text-xs font-mono px-3 border border-line-strong rounded
-             focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-ink-dim"
+      value={endpoint.description ?? ''}
+      oninput={(e) => onUpdate({ ...endpoint, description: e.currentTarget.value || undefined })}
+      placeholder="Description (optional)"
+      class="w-full h-6 bg-surface text-ink-dim text-[11px] px-3 border border-line rounded
+             focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-ink-dim/40"
     />
+  </div>
+
+  <!-- Sequence mode toggle -->
+  <div class="flex items-center gap-2 px-4 py-1.5 border-b border-line shrink-0">
+    <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-ink-dim hover:text-ink transition-colors">
+      <input
+        type="checkbox"
+        checked={endpoint.sequence_mode ?? false}
+        onchange={(e) => onUpdate({ ...endpoint, sequence_mode: e.currentTarget.checked })}
+        class="w-3 h-3 accent-accent"
+      />
+      Sequence mode — cycle scenarios in order on each request
+    </label>
   </div>
 
   <!-- Scenario tabs -->

@@ -1,11 +1,12 @@
 pub mod router;
+pub mod rules;
 pub mod state;
 pub mod template;
 
 use crate::models::{Collection, LogEntry};
 use actix_cors::Cors;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
-use state::{AppState, CollectionHandle, MultiServerHandle};
+use state::{AppState, CollectionHandle, EndpointStats, MultiServerHandle};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::Emitter;
@@ -86,6 +87,9 @@ fn spawn_http_server(
             let state_data = web::Data::new(AppState {
                 collection: Arc::new(RwLock::new(collection)),
                 app_handle,
+                store: Arc::new(RwLock::new(HashMap::new())),
+                stats: Arc::new(RwLock::new(HashMap::new())),
+                sequence_counters: Arc::new(RwLock::new(HashMap::new())),
             });
 
             let bind_result = HttpServer::new(move || {
@@ -97,6 +101,8 @@ fn spawn_http_server(
                     .route("/{tail:.*}", web::put().to(mock_handler))
                     .route("/{tail:.*}", web::delete().to(mock_handler))
                     .route("/{tail:.*}", web::patch().to(mock_handler))
+                    .route("/{tail:.*}", web::method(actix_web::http::Method::HEAD).to(mock_handler))
+                    .route("/{tail:.*}", web::method(actix_web::http::Method::OPTIONS).to(mock_handler))
             })
             .bind(format!("127.0.0.1:{port}"));
 
@@ -191,6 +197,9 @@ fn spawn_https_server(
             let state_data = web::Data::new(AppState {
                 collection: Arc::new(RwLock::new(collection)),
                 app_handle,
+                store: Arc::new(RwLock::new(HashMap::new())),
+                stats: Arc::new(RwLock::new(HashMap::new())),
+                sequence_counters: Arc::new(RwLock::new(HashMap::new())),
             });
 
             let bind_result = HttpServer::new(move || {
@@ -202,6 +211,8 @@ fn spawn_https_server(
                     .route("/{tail:.*}", web::put().to(mock_handler))
                     .route("/{tail:.*}", web::delete().to(mock_handler))
                     .route("/{tail:.*}", web::patch().to(mock_handler))
+                    .route("/{tail:.*}", web::method(actix_web::http::Method::HEAD).to(mock_handler))
+                    .route("/{tail:.*}", web::method(actix_web::http::Method::OPTIONS).to(mock_handler))
             })
             .bind_rustls_0_23(format!("127.0.0.1:{alias_port}"), tls_config);
 
@@ -281,59 +292,154 @@ async fn mock_handler(
         .collect();
 
     let body_str = String::from_utf8_lossy(&body).to_string();
-    let body_json: Option<serde_json::Value> = serde_json::from_str(&body_str).ok();
+
+    let content_type = headers.get("content-type").map(|s| s.as_str()).unwrap_or("");
+    let body_json: Option<serde_json::Value> = if content_type.contains("application/x-www-form-urlencoded") {
+        // Parse form data into a JSON object so {{request.body.field}} works identically to JSON
+        let map: serde_json::Map<String, serde_json::Value> = body_str
+            .split('&')
+            .filter(|s| !s.is_empty())
+            .filter_map(|pair| {
+                let mut parts = pair.splitn(2, '=');
+                if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
+                    let decoded_key = urlencoding::decode(key).unwrap_or_default().to_string();
+                    let decoded_val = urlencoding::decode(value).unwrap_or_default().to_string();
+                    Some((decoded_key, serde_json::Value::String(decoded_val)))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        Some(serde_json::Value::Object(map))
+    } else {
+        serde_json::from_str(&body_str).ok()
+    };
 
     let collection = state.collection.read().await;
 
+    // Resolve active environment variables
+    let env_vars: HashMap<String, String> = collection.environments
+        .iter()
+        .find(|e| Some(&e.id) == collection.active_env_id.as_ref())
+        .map(|e| e.variables.clone())
+        .unwrap_or_default();
+
     // --- Try to match a mock endpoint ---
-    for endpoint in &collection.endpoints {
-        if endpoint.method.to_uppercase() != method.to_uppercase() {
-            continue;
-        }
+    // For HEAD requests: try HEAD endpoints first, then fall back to matching GET endpoints.
+    let match_methods: Vec<&str> = if method.to_uppercase() == "HEAD" {
+        vec!["HEAD", "GET"]
+    } else {
+        vec![method.as_str()]
+    };
 
-        if let Some(route_params) = router::match_path(&endpoint.path, &path) {
-            let scenario = endpoint
-                .scenarios
-                .iter()
-                .find(|s| s.id == endpoint.active_scenario_id)
-                .or_else(|| endpoint.scenarios.first());
+    'outer: for match_method in &match_methods {
+        for endpoint in &collection.endpoints {
+            if endpoint.method.to_uppercase() != match_method.to_uppercase() {
+                continue;
+            }
 
-            if let Some(scenario) = scenario {
-                if scenario.delay_ms > 0 {
-                    tokio::time::sleep(tokio::time::Duration::from_millis(scenario.delay_ms)).await;
-                }
-
-                let duration = start.elapsed().as_millis() as u64;
-                let body_rendered = template::TemplateEngine::render(
-                    &router::substitute_params(&scenario.body, &route_params),
-                    &route_params,
-                    &query_params,
-                    &headers,
-                    body_json.as_ref(),
-                );
-
-                let log = LogEntry {
-                    timestamp: chrono::Utc::now().to_rfc3339(),
-                    method: method.clone(),
-                    path: path.clone(),
-                    status: scenario.status,
-                    duration,
-                    query: query_params.clone(),
-                    headers: headers.clone(),
-                    body: body_str.clone(),
-                    response_body: Some(body_rendered.clone()),
-                    proxied: Some(false),
+            if let Some(route_params) = router::match_path(&endpoint.path, &path) {
+                // Scenario selection:
+                // 1. Sequence mode: cycle scenarios in order per request.
+                // 2. Rules-based: first scenario whose rules all match wins.
+                // 3. Active scenario fallback, then first scenario.
+                let scenario = if endpoint.sequence_mode && !endpoint.scenarios.is_empty() {
+                    let mut counters = state.sequence_counters.write().await;
+                    let counter = counters.entry(endpoint.id.clone()).or_insert(0);
+                    let idx = *counter % endpoint.scenarios.len();
+                    *counter += 1;
+                    endpoint.scenarios.get(idx)
+                } else {
+                    endpoint
+                        .scenarios
+                        .iter()
+                        .find(|s| {
+                            !s.match_rules.is_empty()
+                                && rules::evaluate_rules(
+                                    &s.match_rules,
+                                    &headers,
+                                    &query_params,
+                                    body_json.as_ref(),
+                                    &route_params,
+                                )
+                        })
+                        .or_else(|| {
+                            endpoint
+                                .scenarios
+                                .iter()
+                                .find(|s| s.id == endpoint.active_scenario_id)
+                        })
+                        .or_else(|| endpoint.scenarios.first())
                 };
-                let _ = state.app_handle.emit_to("main", "server:log", &log);
 
-                let mut response = HttpResponse::build(
-                    actix_web::http::StatusCode::from_u16(scenario.status)
-                        .unwrap_or(actix_web::http::StatusCode::OK),
-                );
-                for (key, value) in &scenario.headers {
-                    response.insert_header((key.as_str(), value.as_str()));
+                if let Some(scenario) = scenario {
+                    if scenario.delay_ms > 0 {
+                        tokio::time::sleep(tokio::time::Duration::from_millis(scenario.delay_ms)).await;
+                    }
+
+                    let duration = start.elapsed().as_millis() as u64;
+                    let store_snapshot = state.store.read().await.clone();
+                    let (body_rendered, store_ops) = template::TemplateEngine::render(
+                        &router::substitute_params(&scenario.body, &route_params),
+                        &route_params,
+                        &query_params,
+                        &headers,
+                        body_json.as_ref(),
+                        &store_snapshot,
+                        &env_vars,
+                    );
+                    if !store_ops.is_empty() {
+                        let mut store = state.store.write().await;
+                        for op in store_ops {
+                            match op {
+                                template::StoreOp::Set(k, v) => { store.insert(k, v); }
+                                template::StoreOp::Delete(k) => { store.remove(&k); }
+                            }
+                        }
+                    }
+
+                    let log = LogEntry {
+                        timestamp: chrono::Utc::now().to_rfc3339(),
+                        method: method.clone(),
+                        path: path.clone(),
+                        status: scenario.status,
+                        duration,
+                        query: query_params.clone(),
+                        headers: headers.clone(),
+                        body: body_str.clone(),
+                        response_body: Some(body_rendered.clone()),
+                        proxied: Some(false),
+                    };
+                    let _ = state.app_handle.emit_to("main", "server:log", &log);
+
+                    // Update per-endpoint stats
+                    {
+                        let stat_key = format!("{} {}", endpoint.method.to_uppercase(), endpoint.path);
+                        let mut stats = state.stats.write().await;
+                        let entry = stats.entry(stat_key).or_insert_with(EndpointStats::default);
+                        entry.count += 1;
+                        if scenario.status >= 400 { entry.error_count += 1; }
+                        entry.total_duration += duration;
+                        if entry.durations.len() < 1000 { entry.durations.push(duration); }
+                        entry.last_hit = Some(chrono::Utc::now().to_rfc3339());
+                    }
+                    let stats_snapshot: HashMap<String, EndpointStats> = state.stats.read().await.clone();
+                    let _ = state.app_handle.emit_to("main", "server:stats", &stats_snapshot);
+
+                    let mut response = HttpResponse::build(
+                        actix_web::http::StatusCode::from_u16(scenario.status)
+                            .unwrap_or(actix_web::http::StatusCode::OK),
+                    );
+                    for (key, value) in &scenario.headers {
+                        response.insert_header((key.as_str(), value.as_str()));
+                    }
+                    // HEAD: same status/headers but empty body
+                    if method.to_uppercase() == "HEAD" {
+                        return response.finish();
+                    }
+                    return response.body(body_rendered);
                 }
-                return response.body(body_rendered);
+                break 'outer;
             }
         }
     }
@@ -429,6 +535,27 @@ async fn mock_handler(
                 }
             }
         }
+    }
+
+    // --- OPTIONS fallback: no matching endpoint configured, return 204 with Allow header ---
+    if method.to_uppercase() == "OPTIONS" {
+        let duration = start.elapsed().as_millis() as u64;
+        let log = LogEntry {
+            timestamp: chrono::Utc::now().to_rfc3339(),
+            method: method.clone(),
+            path: path.clone(),
+            status: 204,
+            duration,
+            query: query_params,
+            headers,
+            body: body_str,
+            response_body: None,
+            proxied: Some(false),
+        };
+        let _ = state.app_handle.emit_to("main", "server:log", &log);
+        return HttpResponse::NoContent()
+            .insert_header(("Allow", "GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS"))
+            .finish();
     }
 
     // --- 404 ---

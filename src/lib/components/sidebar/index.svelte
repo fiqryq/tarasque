@@ -2,6 +2,7 @@
   import { Plus, Search } from 'lucide-svelte';
   import CollectionItem from './CollectionItem.svelte';
   import CollectionSettingsModal from '$lib/components/CollectionSettingsModal.svelte';
+  import CollectionEnvironmentModal from '$lib/components/CollectionEnvironmentModal.svelte';
   import ImportExport from './ImportExport.svelte';
   import {
     collections,
@@ -16,6 +17,7 @@
   let newName = $state('');
   let creating = $state(false);
   let settingsCollection = $state<Collection | null>(null);
+  let environmentCollection = $state<Collection | null>(null);
 
   onMount(() => {
     refreshProxyStatus();
@@ -72,6 +74,7 @@
         onSelect={() => activeCollectionId.set(collection.id)}
         onDelete={() => deleteCollection(collection.id)}
         onSettings={() => settingsCollection = collection}
+        onEnvironments={() => environmentCollection = collection}
       />
     {/each}
 
@@ -109,8 +112,15 @@
 </div>
 
 {#if settingsCollection}
-  <CollectionSettingsModal 
-    collection={settingsCollection} 
-    onClose={() => settingsCollection = null} 
+  <CollectionSettingsModal
+    collection={settingsCollection}
+    onClose={() => settingsCollection = null}
+  />
+{/if}
+
+{#if environmentCollection}
+  <CollectionEnvironmentModal
+    collection={environmentCollection}
+    onclose={() => environmentCollection = null}
   />
 {/if}

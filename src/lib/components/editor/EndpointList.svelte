@@ -1,29 +1,36 @@
 <script lang="ts">
-  import { Plus, Trash2, Search, X } from 'lucide-svelte';
+  import { Plus, Trash2, Search, X, Copy, Terminal } from 'lucide-svelte';
+  import CurlImportModal from './CurlImportModal.svelte';
   import type { Endpoint } from '$lib/types';
 
   interface Props {
     endpoints: Endpoint[];
     activeId: string | null;
+    collectionId: string;
     onSelect: (id: string) => void;
     onAdd: () => void;
     onDelete: (id: string) => void;
+    onDuplicate: (id: string) => void;
   }
 
-  let { endpoints, activeId, onSelect, onAdd, onDelete }: Props = $props();
+  let { endpoints, activeId, collectionId, onSelect, onAdd, onDelete, onDuplicate }: Props = $props();
+
+  let showCurlModal = $state(false);
 
   let searchQuery = $state('');
   let methodFilter = $state<string | null>(null);
 
   const METHOD_BADGE: Record<string, string> = {
-    GET:    'bg-emerald-500/10 text-emerald-400',
-    POST:   'bg-violet-500/10 text-violet-400',
-    PUT:    'bg-sky-500/10 text-sky-400',
-    DELETE: 'bg-rose-500/10 text-rose-400',
-    PATCH:  'bg-amber-500/10 text-amber-400',
+    GET:     'bg-emerald-500/10 text-emerald-400',
+    POST:    'bg-violet-500/10 text-violet-400',
+    PUT:     'bg-sky-500/10 text-sky-400',
+    DELETE:  'bg-rose-500/10 text-rose-400',
+    PATCH:   'bg-amber-500/10 text-amber-400',
+    HEAD:    'bg-teal-500/10 text-teal-400',
+    OPTIONS: 'bg-orange-500/10 text-orange-400',
   };
 
-  const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+  const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
   let filteredEndpoints = $derived(
     endpoints.filter(ep => {
@@ -78,14 +85,27 @@
   <!-- Header -->
   <div class="flex items-center justify-between px-3 h-9 border-b border-line shrink-0">
     <span class="font-krub text-[10px] font-semibold text-ink-muted uppercase tracking-widest">Endpoints</span>
-    <button
-      onclick={onAdd}
-      class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors duration-150"
-      title="Add endpoint"
-    >
-      <Plus size={12} />
-    </button>
+    <div class="flex items-center gap-0.5">
+      <button
+        onclick={() => showCurlModal = true}
+        class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors duration-150"
+        title="Import cURL"
+      >
+        <Terminal size={11} />
+      </button>
+      <button
+        onclick={onAdd}
+        class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors duration-150"
+        title="Add endpoint"
+      >
+        <Plus size={12} />
+      </button>
+    </div>
   </div>
+
+  {#if showCurlModal}
+    <CurlImportModal {collectionId} onclose={() => showCurlModal = false} />
+  {/if}
 
   <div class="flex-1 overflow-y-auto py-0.5">
     {#each filteredEndpoints as endpoint (endpoint.id)}
@@ -100,19 +120,36 @@
           {METHOD_BADGE[endpoint.method] ?? 'bg-surface text-ink-muted'}">
           {endpoint.method}
         </span>
-        <span class="flex-1 text-xs font-mono truncate
-          {activeId === endpoint.id ? 'text-ink' : 'text-ink-muted group-hover:text-ink'} transition-colors duration-150">
-          {endpoint.path}
+        <span class="flex-1 min-w-0 flex flex-col">
+          <span class="text-xs font-mono truncate
+            {activeId === endpoint.id ? 'text-ink' : 'text-ink-muted group-hover:text-ink'} transition-colors duration-150">
+            {endpoint.path}
+          </span>
+          {#if endpoint.description}
+            <span class="text-[10px] text-ink-dim truncate leading-tight">{endpoint.description}</span>
+          {/if}
         </span>
-        <div
-          role="button"
-          tabindex="0"
-          onclick={(e) => { e.stopPropagation(); onDelete(endpoint.id); }}
-          onkeydown={(e) => e.key === 'Enter' && onDelete(endpoint.id)}
-          class="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded
-                 text-ink-dim hover:text-err hover:bg-err/10 transition-all duration-150 shrink-0"
-        >
-          <Trash2 size={10} />
+        <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 shrink-0">
+          <div
+            role="button"
+            tabindex="0"
+            onclick={(e) => { e.stopPropagation(); onDuplicate(endpoint.id); }}
+            onkeydown={(e) => e.key === 'Enter' && onDuplicate(endpoint.id)}
+            class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-all duration-150"
+            title="Duplicate endpoint"
+          >
+            <Copy size={10} />
+          </div>
+          <div
+            role="button"
+            tabindex="0"
+            onclick={(e) => { e.stopPropagation(); onDelete(endpoint.id); }}
+            onkeydown={(e) => e.key === 'Enter' && onDelete(endpoint.id)}
+            class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-err hover:bg-err/10 transition-all duration-150"
+            title="Delete endpoint"
+          >
+            <Trash2 size={10} />
+          </div>
         </div>
       </button>
     {/each}

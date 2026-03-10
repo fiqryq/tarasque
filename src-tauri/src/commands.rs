@@ -84,6 +84,8 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
         alias_port: None,
         alias_cert_pem: None,
         alias_key_pem: None,
+        environments: Vec::new(),
+        active_env_id: None,
     };
 
     if let Some(paths) = spec.get("paths").and_then(|p| p.as_object()) {
@@ -126,6 +128,7 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
                                     headers,
                                     body,
                                     query_params: HashMap::new(),
+                                    match_rules: Vec::new(),
                                 });
                             }
                         }
@@ -139,6 +142,7 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
                                 headers: HashMap::from([("Content-Type".to_string(), "application/json".to_string())]),
                                 body: "{}".to_string(),
                                 query_params: HashMap::new(),
+                                match_rules: Vec::new(),
                             });
                         }
 
@@ -150,6 +154,8 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
                             path: path.clone(),
                             scenarios,
                             active_scenario_id: active_id,
+                            description: None,
+                            sequence_mode: false,
                         });
                     }
                 }
