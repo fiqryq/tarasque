@@ -125,6 +125,26 @@ export function addEndpoint(collectionId: string) {
   scheduleAutoSave();
 }
 
+export function duplicateEndpoint(collectionId: string, endpointId: string) {
+  collections.update((cols) =>
+    cols.map((c) => {
+      if (c.id !== collectionId) return c;
+      const original = c.endpoints.find((e) => e.id === endpointId);
+      if (!original) return c;
+      const newScenarios = original.scenarios.map((s) => ({ ...s, id: crypto.randomUUID() }));
+      const copy: Endpoint = {
+        ...original,
+        id: crypto.randomUUID(),
+        path: original.path + ' (copy)',
+        scenarios: newScenarios,
+        active_scenario_id: newScenarios[0]?.id ?? '',
+      };
+      return { ...c, endpoints: [...c.endpoints, copy] };
+    })
+  );
+  scheduleAutoSave();
+}
+
 export function deleteEndpoint(collectionId: string, endpointId: string) {
   collections.update((cols) =>
     cols.map((c) =>

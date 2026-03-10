@@ -8,6 +8,7 @@
     activeCollectionId,
     addEndpoint,
     deleteEndpoint,
+    duplicateEndpoint,
     updateEndpoint,
   } from '$lib/stores/collections';
 </script>
@@ -22,6 +23,7 @@
         onSelect={(id) => activeEndpointId.set(id)}
         onAdd={() => addEndpoint($activeCollection!.id)}
         onDelete={(id) => deleteEndpoint($activeCollection!.id, id)}
+        onDuplicate={(id) => duplicateEndpoint($activeCollection!.id, id)}
       />
     </div>
 

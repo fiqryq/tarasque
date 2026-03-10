@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Plus, Trash2, Search, X } from 'lucide-svelte';
+  import { Plus, Trash2, Search, X, Copy } from 'lucide-svelte';
   import type { Endpoint } from '$lib/types';
 
   interface Props {
@@ -8,9 +8,10 @@
     onSelect: (id: string) => void;
     onAdd: () => void;
     onDelete: (id: string) => void;
+    onDuplicate: (id: string) => void;
   }
 
-  let { endpoints, activeId, onSelect, onAdd, onDelete }: Props = $props();
+  let { endpoints, activeId, onSelect, onAdd, onDelete, onDuplicate }: Props = $props();
 
   let searchQuery = $state('');
   let methodFilter = $state<string | null>(null);
@@ -104,15 +105,27 @@
           {activeId === endpoint.id ? 'text-ink' : 'text-ink-muted group-hover:text-ink'} transition-colors duration-150">
           {endpoint.path}
         </span>
-        <div
-          role="button"
-          tabindex="0"
-          onclick={(e) => { e.stopPropagation(); onDelete(endpoint.id); }}
-          onkeydown={(e) => e.key === 'Enter' && onDelete(endpoint.id)}
-          class="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded
-                 text-ink-dim hover:text-err hover:bg-err/10 transition-all duration-150 shrink-0"
-        >
-          <Trash2 size={10} />
+        <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 shrink-0">
+          <div
+            role="button"
+            tabindex="0"
+            onclick={(e) => { e.stopPropagation(); onDuplicate(endpoint.id); }}
+            onkeydown={(e) => e.key === 'Enter' && onDuplicate(endpoint.id)}
+            class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-all duration-150"
+            title="Duplicate endpoint"
+          >
+            <Copy size={10} />
+          </div>
+          <div
+            role="button"
+            tabindex="0"
+            onclick={(e) => { e.stopPropagation(); onDelete(endpoint.id); }}
+            onkeydown={(e) => e.key === 'Enter' && onDelete(endpoint.id)}
+            class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-err hover:bg-err/10 transition-all duration-150"
+            title="Delete endpoint"
+          >
+            <Trash2 size={10} />
+          </div>
         </div>
       </button>
     {/each}
