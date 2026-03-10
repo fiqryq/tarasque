@@ -7,6 +7,56 @@
 
   let activeTab = $state<'logs' | 'stats'>('logs');
 
+  function exportHar(logEntries: LogEntry[]) {
+    const entries = logEntries.map((log) => ({
+      startedDateTime: log.timestamp,
+      time: log.duration,
+      request: {
+        method: log.method,
+        url: `http://localhost${log.path}`,
+        httpVersion: 'HTTP/1.1',
+        headers: Object.entries(log.headers ?? {}).map(([name, value]) => ({ name, value })),
+        queryString: Object.entries(log.query ?? {}).map(([name, value]) => ({ name, value })),
+        postData: log.body ? { mimeType: 'application/json', text: log.body } : undefined,
+        cookies: [],
+        headersSize: -1,
+        bodySize: log.body?.length ?? 0,
+      },
+      response: {
+        status: log.status,
+        statusText: '',
+        headers: [],
+        content: {
+          size: log.response_body?.length ?? 0,
+          mimeType: 'application/json',
+          text: log.response_body ?? '',
+        },
+        cookies: [],
+        redirectURL: '',
+        headersSize: -1,
+        bodySize: log.response_body?.length ?? -1,
+      },
+      cache: {},
+      timings: { send: 0, wait: log.duration, receive: 0 },
+    }));
+
+    const har = {
+      log: {
+        version: '1.2',
+        creator: { name: 'Tarasque', version: '2.0' },
+        entries,
+      },
+    };
+
+    const blob = new Blob([JSON.stringify(har, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `tarasque-${new Date().toISOString().slice(0, 10)}.har`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   function statusBadge(status: number): string {
     if (status < 300) return 'text-emerald-400 bg-emerald-500/10';
     if (status < 400) return 'text-amber-400 bg-amber-500/10';
@@ -122,6 +172,16 @@
 
         <div class="flex-1"></div>
         {#if activeTab === 'logs'}
+          {#if $logs.length > 0}
+            <button
+              onclick={() => exportHar($logs)}
+              class="px-2 h-5 text-[9px] font-krub text-ink-dim hover:text-ink border border-line rounded
+                     hover:border-line-strong transition-colors"
+              title="Export as HAR"
+            >
+              HAR
+            </button>
+          {/if}
           <button
             onclick={clearLogs}
             class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink-muted
