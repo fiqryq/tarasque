@@ -6,7 +6,7 @@ pub mod template;
 use crate::models::{Collection, LogEntry};
 use actix_cors::Cors;
 use actix_web::{web, App, HttpRequest, HttpResponse, HttpServer};
-use state::{AppState, CollectionHandle, MultiServerHandle};
+use state::{AppState, CollectionHandle, EndpointStats, MultiServerHandle};
 use std::collections::HashMap;
 use std::sync::Arc;
 use tauri::Emitter;
@@ -88,6 +88,7 @@ fn spawn_http_server(
                 collection: Arc::new(RwLock::new(collection)),
                 app_handle,
                 store: Arc::new(RwLock::new(HashMap::new())),
+                stats: Arc::new(RwLock::new(HashMap::new())),
             });
 
             let bind_result = HttpServer::new(move || {
@@ -196,6 +197,7 @@ fn spawn_https_server(
                 collection: Arc::new(RwLock::new(collection)),
                 app_handle,
                 store: Arc::new(RwLock::new(HashMap::new())),
+                stats: Arc::new(RwLock::new(HashMap::new())),
             });
 
             let bind_result = HttpServer::new(move || {
@@ -389,6 +391,20 @@ async fn mock_handler(
                         proxied: Some(false),
                     };
                     let _ = state.app_handle.emit_to("main", "server:log", &log);
+
+                    // Update per-endpoint stats
+                    {
+                        let stat_key = format!("{} {}", endpoint.method.to_uppercase(), endpoint.path);
+                        let mut stats = state.stats.write().await;
+                        let entry = stats.entry(stat_key).or_insert_with(EndpointStats::default);
+                        entry.count += 1;
+                        if scenario.status >= 400 { entry.error_count += 1; }
+                        entry.total_duration += duration;
+                        if entry.durations.len() < 1000 { entry.durations.push(duration); }
+                        entry.last_hit = Some(chrono::Utc::now().to_rfc3339());
+                    }
+                    let stats_snapshot: HashMap<String, EndpointStats> = state.stats.read().await.clone();
+                    let _ = state.app_handle.emit_to("main", "server:stats", &stats_snapshot);
 
                     let mut response = HttpResponse::build(
                         actix_web::http::StatusCode::from_u16(scenario.status)

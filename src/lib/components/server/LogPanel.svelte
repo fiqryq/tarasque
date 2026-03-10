@@ -3,6 +3,9 @@
   import { logPanel } from '$lib/stores/logPanel';
   import { Trash2, ChevronDown, ChevronUp, ChevronRight } from 'lucide-svelte';
   import type { LogEntry } from '$lib/types';
+  import StatsPanel from './StatsPanel.svelte';
+
+  let activeTab = $state<'logs' | 'stats'>('logs');
 
   function statusBadge(status: number): string {
     if (status < 300) return 'text-emerald-400 bg-emerald-500/10';
@@ -90,25 +93,49 @@
     ></div>
     
     <div class="flex flex-col flex-1 min-h-0 bg-surface">
-      <div class="flex items-center justify-between px-4 h-8 border-b border-line shrink-0">
+      <div class="flex items-center px-4 h-8 border-b border-line shrink-0 gap-3">
         <button
           onclick={() => logPanel.toggle()}
-          class="flex items-center gap-2 text-ink-muted hover:text-ink transition-colors"
+          class="flex items-center gap-1 text-ink-muted hover:text-ink transition-colors shrink-0"
         >
           <ChevronDown size={14} />
-          <span class="font-krub text-[10px] font-semibold uppercase tracking-widest">Logs</span>
-          <span class="text-[10px] text-ink-dim">({$logs.length})</span>
         </button>
-        <button
-          onclick={clearLogs}
-          class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink-muted
-                 hover:bg-hover transition-colors duration-150"
-          title="Clear logs"
-        >
-          <Trash2 size={10} />
-        </button>
+
+        <!-- Tabs -->
+        <div class="flex items-center gap-1">
+          <button
+            onclick={() => activeTab = 'logs'}
+            class="flex items-center gap-1.5 px-2 h-6 text-[10px] font-krub font-semibold uppercase tracking-widest rounded transition-colors
+                   {activeTab === 'logs' ? 'text-ink bg-hover' : 'text-ink-dim hover:text-ink'}"
+          >
+            Logs
+            <span class="text-[9px] font-mono font-normal">({$logs.length})</span>
+          </button>
+          <button
+            onclick={() => activeTab = 'stats'}
+            class="px-2 h-6 text-[10px] font-krub font-semibold uppercase tracking-widest rounded transition-colors
+                   {activeTab === 'stats' ? 'text-ink bg-hover' : 'text-ink-dim hover:text-ink'}"
+          >
+            Stats
+          </button>
+        </div>
+
+        <div class="flex-1"></div>
+        {#if activeTab === 'logs'}
+          <button
+            onclick={clearLogs}
+            class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink-muted
+                   hover:bg-hover transition-colors duration-150"
+            title="Clear logs"
+          >
+            <Trash2 size={10} />
+          </button>
+        {/if}
       </div>
 
+      {#if activeTab === 'stats'}
+        <StatsPanel />
+      {:else}
       <div bind:this={logContainer} class="flex-1 overflow-y-auto font-mono text-[11px]">
         {#each $logs as log (log.timestamp + log.path)}
           <div class="border-b border-line/50">
@@ -194,6 +221,7 @@
           <p class="text-ink-dim text-center py-3 text-[11px]">No requests yet</p>
         {/if}
       </div>
+      {/if}
     </div>
   </div>
 {/if}
