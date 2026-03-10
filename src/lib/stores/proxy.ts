@@ -30,7 +30,8 @@ export async function startProxy() {
   try {
     const aliases = enabledAliases(get(collections));
     await invoke('start_proxy', { aliases });
-    proxyStatus.set('running');
+    proxyStatus.set('running'); // optimistic — avoids flicker while refresh resolves
+    await refreshProxyStatus();
   } catch (err) {
     proxyError.set(String(err));
     proxyStatus.set('stopped');
