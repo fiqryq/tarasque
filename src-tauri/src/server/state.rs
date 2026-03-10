@@ -1,4 +1,5 @@
 use crate::models::Collection;
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::{Mutex, RwLock};
 use tokio::sync::oneshot;
@@ -9,5 +10,14 @@ pub struct AppState {
     pub app_handle: tauri::AppHandle,
 }
 
+/// Per-collection shutdown handles.
+pub struct CollectionHandle {
+    pub http:  oneshot::Sender<()>,
+    pub https: Option<oneshot::Sender<()>>,
+}
+
+/// Global registry of all running collection servers.
 #[derive(Default)]
-pub struct ServerHandle(pub Mutex<Option<oneshot::Sender<()>>>);
+pub struct MultiServerHandle {
+    pub handles: Mutex<HashMap<String, CollectionHandle>>,
+}
