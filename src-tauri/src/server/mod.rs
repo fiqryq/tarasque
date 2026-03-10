@@ -285,7 +285,28 @@ async fn mock_handler(
         .collect();
 
     let body_str = String::from_utf8_lossy(&body).to_string();
-    let body_json: Option<serde_json::Value> = serde_json::from_str(&body_str).ok();
+
+    let content_type = headers.get("content-type").map(|s| s.as_str()).unwrap_or("");
+    let body_json: Option<serde_json::Value> = if content_type.contains("application/x-www-form-urlencoded") {
+        // Parse form data into a JSON object so {{request.body.field}} works identically to JSON
+        let map: serde_json::Map<String, serde_json::Value> = body_str
+            .split('&')
+            .filter(|s| !s.is_empty())
+            .filter_map(|pair| {
+                let mut parts = pair.splitn(2, '=');
+                if let (Some(key), Some(value)) = (parts.next(), parts.next()) {
+                    let decoded_key = urlencoding::decode(key).unwrap_or_default().to_string();
+                    let decoded_val = urlencoding::decode(value).unwrap_or_default().to_string();
+                    Some((decoded_key, serde_json::Value::String(decoded_val)))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        Some(serde_json::Value::Object(map))
+    } else {
+        serde_json::from_str(&body_str).ok()
+    };
 
     let collection = state.collection.read().await;
 
