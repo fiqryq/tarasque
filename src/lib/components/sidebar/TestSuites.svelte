@@ -26,7 +26,7 @@
 
 <div class="flex flex-col h-full">
   <div class="flex items-center justify-between px-3 h-9 border-b border-line shrink-0">
-    <span class="font-krub text-[10px] font-semibold text-ink-muted uppercase tracking-widest">Test Suites</span>
+    <span class="font-krub text-[11px] font-semibold text-ink-muted uppercase tracking-widest">Test Suites</span>
     <button
       onclick={() => showNewSuite = true}
       class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors"
@@ -71,7 +71,7 @@
     {/each}
 
     {#if $testSuites.length === 0 && !showNewSuite}
-      <p class="text-ink-dim text-[10px] text-center py-4">No test suites yet</p>
+      <p class="text-ink-dim text-[11px] text-center py-4">No test suites yet</p>
     {/if}
   </div>
 </div>

@@ -38,7 +38,7 @@
   {:else}
     <table class="w-full">
       <thead class="sticky top-0 bg-surface">
-        <tr class="text-ink-dim border-b border-line text-[10px] font-krub uppercase tracking-wide">
+        <tr class="text-ink-dim border-b border-line text-[11px] font-krub uppercase tracking-wide">
           <th class="text-left px-3 py-1.5">Endpoint</th>
           <th class="text-right px-3 py-1.5">Hits</th>
           <th class="text-right px-3 py-1.5">Errors</th>

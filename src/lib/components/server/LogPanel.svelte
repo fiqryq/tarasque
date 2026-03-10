@@ -115,14 +115,14 @@
 </script>
 
 {#if $logPanel.collapsed}
-  <div class="h-10 border-t border-line flex items-center justify-between px-4 bg-surface">
+  <div class="h-9 border-t border-line flex items-center justify-between px-4 bg-surface">
     <button
       onclick={() => logPanel.toggle()}
       class="flex items-center gap-2 text-ink-muted hover:text-ink transition-colors"
     >
       <ChevronUp size={14} />
-      <span class="font-krub text-[10px] font-semibold uppercase tracking-widest">Logs</span>
-      <span class="text-[10px] text-ink-dim">({$logs.length})</span>
+      <span class="font-krub text-[11px] font-semibold uppercase tracking-widest">Logs</span>
+      <span class="text-[11px] text-ink-dim">({$logs.length})</span>
     </button>
     <button
       onclick={clearLogs}
@@ -155,7 +155,7 @@
         <div class="flex items-center gap-1">
           <button
             onclick={() => activeTab = 'logs'}
-            class="flex items-center gap-1.5 px-2 h-6 text-[10px] font-krub font-semibold uppercase tracking-widest rounded transition-colors
+            class="flex items-center gap-1.5 px-2 h-6 text-[11px] font-krub font-semibold uppercase tracking-widest rounded transition-colors
                    {activeTab === 'logs' ? 'text-ink bg-hover' : 'text-ink-dim hover:text-ink'}"
           >
             Logs
@@ -163,7 +163,7 @@
           </button>
           <button
             onclick={() => activeTab = 'stats'}
-            class="px-2 h-6 text-[10px] font-krub font-semibold uppercase tracking-widest rounded transition-colors
+            class="px-2 h-6 text-[11px] font-krub font-semibold uppercase tracking-widest rounded transition-colors
                    {activeTab === 'stats' ? 'text-ink bg-hover' : 'text-ink-dim hover:text-ink'}"
           >
             Stats
@@ -208,10 +208,10 @@
                 size={12} 
                 class="text-ink-dim transition-transform {expandedLogs.has(log.timestamp + log.path) ? 'rotate-90' : ''}" 
               />
-              <span class="text-ink-dim shrink-0 tabular-nums w-[72px] text-[10px]">
+              <span class="text-ink-dim shrink-0 tabular-nums w-[72px] text-[11px]">
                 {new Date(log.timestamp).toLocaleTimeString()}
               </span>
-              <span class="font-bold w-12 shrink-0 text-[10px] {METHOD_TEXT[log.method] ?? 'text-ink-muted'}">
+              <span class="font-bold w-12 shrink-0 text-[11px] {METHOD_TEXT[log.method] ?? 'text-ink-muted'}">
                 {log.method}
               </span>
               <span class="flex-1 text-ink-muted truncate group-hover:text-ink transition-colors">
@@ -222,17 +222,17 @@
                   ↗
                 </span>
               {/if}
-              <span class="shrink-0 tabular-nums text-[10px] px-1.5 py-0.5 rounded font-bold {statusBadge(log.status)}">
+              <span class="shrink-0 tabular-nums text-[11px] px-1.5 py-0.5 rounded font-bold {statusBadge(log.status)}">
                 {log.status}
               </span>
-              <span class="text-ink-dim shrink-0 tabular-nums w-14 text-right text-[10px]">
+              <span class="text-ink-dim shrink-0 tabular-nums w-14 text-right text-[11px]">
                 {log.duration}ms
               </span>
             </div>
 
             <!-- Expanded Details -->
             {#if expandedLogs.has(log.timestamp + log.path)}
-              <div class="px-4 pb-3 bg-[#151515] space-y-2 text-[10px]">
+              <div class="px-4 pb-3 bg-[#151515] space-y-2 text-[11px]">
                 <!-- Query -->
                 {#if log.query && Object.keys(log.query).length > 0}
                   <div>

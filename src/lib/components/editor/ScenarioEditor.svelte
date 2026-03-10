@@ -239,7 +239,7 @@
   <!-- Status + Delay row -->
   <div class="flex gap-4 px-4 py-3 border-b border-line shrink-0">
     <div class="flex flex-col gap-1.5">
-      <label for="status-code" class="text-[10px] font-krub text-ink-muted uppercase tracking-widest">Status</label>
+      <label for="status-code" class="text-[11px] font-krub text-ink-muted uppercase tracking-widest">Status</label>
       <input
         id="status-code"
         type="number"
@@ -250,7 +250,7 @@
       />
     </div>
     <div class="flex flex-col gap-1.5">
-      <label for="delay-ms" class="text-[10px] font-krub text-ink-muted uppercase tracking-widest">Delay ms</label>
+      <label for="delay-ms" class="text-[11px] font-krub text-ink-muted uppercase tracking-widest">Delay ms</label>
       <input
         id="delay-ms"
         type="number"
@@ -292,7 +292,7 @@
             if (!isNaN(gi) && !isNaN(ti)) applyTemplate(RESPONSE_TEMPLATES[gi].items[ti]);
             e.currentTarget.value = '';
           }}
-          class="h-6 text-[10px] font-krub bg-surface text-ink-muted border border-line-strong rounded
+          class="h-6 text-[11px] font-krub bg-surface text-ink-muted border border-line-strong rounded
                  px-2 focus:outline-none focus:border-accent cursor-pointer hover:border-accent
                  transition-colors duration-150"
         >
@@ -313,16 +313,16 @@
             title="Template variables"
           >
             <HelpCircle size={12} />
-            <span class="text-[10px]">Vars</span>
+            <span class="text-[11px]">Vars</span>
           </button>
           {#if showTemplateHelp}
             <div class="absolute right-0 top-7 z-50 w-72 bg-surface border border-line rounded-lg shadow-xl p-3">
-              <div class="text-[10px] font-krub text-ink-muted uppercase tracking-widest mb-2">Template Variables</div>
+              <div class="text-[11px] font-krub text-ink-muted uppercase tracking-widest mb-2">Template Variables</div>
               <div class="space-y-1 max-h-48 overflow-y-auto">
                 {#each TEMPLATE_VARS as item}
                   <div class="flex items-start gap-2">
-                    <code class="text-[10px] font-mono text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">{item.var}</code>
-                    <span class="text-[10px] text-ink-dim">{item.desc}</span>
+                    <code class="text-[11px] font-mono text-accent bg-accent/10 px-1.5 py-0.5 rounded shrink-0">{item.var}</code>
+                    <span class="text-[11px] text-ink-dim">{item.desc}</span>
                   </div>
                 {/each}
               </div>
@@ -400,7 +400,7 @@
         <!-- Footer hint -->
         {#if Object.keys(queryParams).length > 0}
           <div class="px-4 py-2 border-t border-line/40 shrink-0">
-            <p class="text-[10px] text-ink-dim">
+            <p class="text-[11px] text-ink-dim">
               Access in body: <code class="text-accent">{"{{request.query.key}}"}</code>
             </p>
           </div>
@@ -497,20 +497,20 @@
 
         <!-- Status line -->
         <div class="flex items-center gap-3">
-          <span class="text-[10px] font-krub text-ink-dim uppercase tracking-widest w-16 shrink-0">Status</span>
+          <span class="text-[11px] font-krub text-ink-dim uppercase tracking-widest w-16 shrink-0">Status</span>
           <span class="inline-flex items-center gap-2 px-3 py-1 rounded border text-xs font-mono font-semibold {statusColor(scenario.status)}">
             {scenario.status} {statusText(scenario.status)}
           </span>
           {#if scenario.delay_ms > 0}
-            <span class="text-[10px] font-mono text-ink-dim">{scenario.delay_ms}ms delay</span>
+            <span class="text-[11px] font-mono text-ink-dim">{scenario.delay_ms}ms delay</span>
           {/if}
         </div>
 
         <!-- Response headers -->
         <div>
           <div class="flex items-center gap-3 mb-1.5">
-            <span class="text-[10px] font-krub text-ink-dim uppercase tracking-widest w-16 shrink-0">Headers</span>
-            <span class="text-[10px] text-ink-dim">{Object.keys(scenario.headers).length} header{Object.keys(scenario.headers).length !== 1 ? 's' : ''}</span>
+            <span class="text-[11px] font-krub text-ink-dim uppercase tracking-widest w-16 shrink-0">Headers</span>
+            <span class="text-[11px] text-ink-dim">{Object.keys(scenario.headers).length} header{Object.keys(scenario.headers).length !== 1 ? 's' : ''}</span>
           </div>
           <div class="rounded border border-line overflow-hidden">
             {#if Object.keys(scenario.headers).length === 0}
@@ -530,9 +530,9 @@
         <!-- Response body -->
         <div>
           <div class="flex items-center gap-3 mb-1.5">
-            <span class="text-[10px] font-krub text-ink-dim uppercase tracking-widest w-16 shrink-0">Body</span>
+            <span class="text-[11px] font-krub text-ink-dim uppercase tracking-widest w-16 shrink-0">Body</span>
             {#if scenario.body.trim()}
-              <span class="text-[10px] text-ink-dim">{scenario.body.trim().length} chars</span>
+              <span class="text-[11px] text-ink-dim">{scenario.body.trim().length} chars</span>
             {/if}
           </div>
           {#if !scenario.body.trim()}
@@ -550,8 +550,8 @@
         {#if Object.keys(queryParams).length > 0}
           <div>
             <div class="flex items-center gap-3 mb-1.5">
-              <span class="text-[10px] font-krub text-ink-dim uppercase tracking-widest w-16 shrink-0">Params</span>
-              <span class="text-[10px] text-ink-dim">{Object.keys(queryParams).length} expected</span>
+              <span class="text-[11px] font-krub text-ink-dim uppercase tracking-widest w-16 shrink-0">Params</span>
+              <span class="text-[11px] text-ink-dim">{Object.keys(queryParams).length} expected</span>
             </div>
             <div class="rounded border border-line overflow-hidden">
               {#each Object.entries(queryParams) as [key, val], i (key)}

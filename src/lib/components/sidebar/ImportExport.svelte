@@ -97,7 +97,7 @@
 <div class="flex items-center gap-1 px-3 py-2 border-t border-line">
   <button
     onclick={() => fileInput.click()}
-    class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[10px] font-krub
+    class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-krub
            bg-surface border border-line-strong rounded text-ink-muted hover:text-ink hover:border-accent transition-colors"
   >
     <Upload size={11} />
@@ -106,7 +106,7 @@
 
   <div class="relative group">
     <button
-      class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[10px] font-krub
+      class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-krub
              bg-surface border border-line-strong rounded text-ink-muted hover:text-ink hover:border-accent transition-colors"
     >
       <Download size={11} />

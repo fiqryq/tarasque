@@ -25,7 +25,7 @@
 <div class="flex items-center gap-4 h-full w-full font-inter">
   <!-- Port input + auto button -->
   <div class="flex items-center gap-1.5">
-    <span class="text-[10px] font-krub text-ink-muted uppercase tracking-widest">Port</span>
+    <span class="text-[11px] font-krub text-ink-muted uppercase tracking-widest">Port</span>
     <input
       id="server-port"
       type="number"
@@ -68,7 +68,7 @@
       <Loader2 size={11} class="animate-spin" />
       <span>starting</span>
     {:else if $activeServerStatus === 'running'}
-      <Square size={11} />
+      <Square size={11} class="fill-current" />
       <span>stop</span>
     {:else}
       <Play size={11} />

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite dev",
+    "dev": "node api.js && vite dev",
     "build": "vite build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",

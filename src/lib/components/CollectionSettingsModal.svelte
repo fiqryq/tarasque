@@ -138,7 +138,7 @@
   onkeydown={() => {}}
 >
   <div
-    class="w-[520px] max-h-[88vh] bg-surface border border-line rounded-xl shadow-2xl flex flex-col overflow-hidden"
+    class="w-[480px] max-h-[88vh] bg-surface border border-line rounded-xl shadow-2xl flex flex-col overflow-hidden"
     onclick={(e) => e.stopPropagation()}
     onkeydown={() => {}}
     role="document"
@@ -159,7 +159,7 @@
 
       <!-- Port -->
       <section>
-        <label for="col-port" class="block text-[10px] font-krub text-ink-muted uppercase tracking-widest mb-2">HTTP Port</label>
+        <label for="col-port" class="block text-[11px] font-krub text-ink-muted uppercase tracking-widest mb-2">HTTP Port</label>
         <input
           id="col-port"
           type="number"
@@ -169,7 +169,7 @@
           class="w-28 bg-app text-ink text-sm font-mono px-3 py-2 border border-line-strong rounded
                  focus:outline-none focus:border-accent transition-colors"
         />
-        <p class="text-[10px] text-ink-dim mt-1.5">Mock server listens on <code class="text-accent">http://localhost:{port}</code></p>
+        <p class="text-[11px] text-ink-dim mt-1.5">Mock server listens on <code class="text-accent">http://localhost:{port}</code></p>
       </section>
 
       <!-- Proxy Forwarding -->
@@ -177,11 +177,11 @@
         <div class="flex items-center justify-between mb-3">
           <div class="flex items-center gap-2">
             <Globe size={13} class="text-ink-muted" />
-            <span class="text-[10px] font-krub text-ink-muted uppercase tracking-widest">Proxy Forwarding</span>
+            <span class="text-[11px] font-krub text-ink-muted uppercase tracking-widest">Proxy Forwarding</span>
           </div>
           <button
             onclick={() => proxyEnabled = !proxyEnabled}
-            class="relative w-9 h-5 rounded-full transition-colors duration-200 {proxyEnabled ? 'bg-accent' : 'bg-line-strong'}"
+            class="relative w-9 h-5 rounded-full overflow-hidden transition-colors duration-200 {proxyEnabled ? 'bg-accent' : 'bg-line-strong'}"
             role="switch"
             aria-checked={proxyEnabled}
             aria-label="Toggle proxy forwarding"
@@ -195,7 +195,7 @@
         {#if proxyEnabled}
           <div class="space-y-3 pl-4 border-l-2 border-line">
             <div>
-              <label for="proxy-url" class="block text-[10px] text-ink-muted mb-1.5">Upstream URL</label>
+              <label for="proxy-url" class="block text-[11px] text-ink-muted mb-1.5">Upstream URL</label>
               <input
                 id="proxy-url"
                 type="text"
@@ -208,7 +208,7 @@
             <div class="flex items-center gap-3">
               <button
                 onclick={() => proxyInsecure = !proxyInsecure}
-                class="relative w-9 h-5 rounded-full transition-colors duration-200 {proxyInsecure ? 'bg-warn' : 'bg-line-strong'}"
+                class="relative w-9 h-5 rounded-full overflow-hidden transition-colors duration-200 {proxyInsecure ? 'bg-warn' : 'bg-line-strong'}"
                 role="switch"
                 aria-checked={proxyInsecure}
                 aria-label="Toggle accept invalid TLS certificates"
@@ -219,7 +219,7 @@
               <div>
                 <p class="text-[11px] text-ink-muted">Accept invalid / self-signed TLS certificates</p>
                 {#if proxyInsecure}
-                  <p class="text-[10px] text-warn mt-0.5">⚠ Only use for local development targets</p>
+                  <p class="text-[11px] text-warn mt-0.5">⚠ Only use for local development targets</p>
                 {/if}
               </div>
             </div>
@@ -236,11 +236,11 @@
             {:else}
               <Shield size={13} class="text-ink-muted" />
             {/if}
-            <span class="text-[10px] font-krub text-ink-muted uppercase tracking-widest">Local HTTPS Alias</span>
+            <span class="text-[11px] font-krub text-ink-muted uppercase tracking-widest">Local HTTPS Alias</span>
           </div>
           <button
             onclick={() => aliasEnabled = !aliasEnabled}
-            class="relative w-9 h-5 rounded-full transition-colors duration-200 {aliasEnabled ? 'bg-accent' : 'bg-line-strong'}"
+            class="relative w-9 h-5 rounded-full overflow-hidden transition-colors duration-200 {aliasEnabled ? 'bg-accent' : 'bg-line-strong'}"
             role="switch"
             aria-checked={aliasEnabled}
             aria-label="Toggle HTTPS alias"
@@ -258,7 +258,7 @@
             <!-- Hostname + Port -->
             <div class="flex gap-3">
               <div class="flex-1">
-                <label for="alias-host" class="block text-[10px] text-ink-muted mb-1.5">Hostname</label>
+                <label for="alias-host" class="block text-[11px] text-ink-muted mb-1.5">Hostname</label>
                 <input
                   id="alias-host"
                   type="text"
@@ -269,7 +269,7 @@
                 />
               </div>
               <div class="w-24">
-                <label for="alias-port" class="block text-[10px] text-ink-muted mb-1.5">HTTPS Port</label>
+                <label for="alias-port" class="block text-[11px] text-ink-muted mb-1.5">HTTPS Port</label>
                 <input
                   id="alias-port"
                   type="number"
@@ -285,7 +285,7 @@
             <!-- Certificate Mode -->
             <div>
               <div class="flex items-center gap-4 mb-3">
-                <span class="text-[10px] text-ink-muted">Certificate Mode</span>
+                <span class="text-[11px] text-ink-muted">Certificate Mode</span>
                 <label class="flex items-center gap-1.5 cursor-pointer">
                   <input type="radio" bind:group={certMode} value="auto" class="accent-[var(--color-accent)]" />
                   <span class="text-[11px] text-ink-muted">Auto</span>
@@ -297,13 +297,13 @@
               </div>
 
               <div class="flex items-center justify-between mb-2">
-                <span class="text-[10px] text-ink-muted">TLS Certificate</span>
+                <span class="text-[11px] text-ink-muted">TLS Certificate</span>
                 {#if hasCert}
-                  <span class="text-[10px] text-run flex items-center gap-1">
+                  <span class="text-[11px] text-run flex items-center gap-1">
                     <ShieldCheck size={10} /> Generated
                   </span>
                 {:else}
-                  <span class="text-[10px] text-warn flex items-center gap-1">
+                  <span class="text-[11px] text-warn flex items-center gap-1">
                     <ShieldAlert size={10} /> Not generated
                   </span>
                 {/if}
@@ -320,7 +320,7 @@
                   {generatingCert ? 'Setting up…' : hasCert ? 'Regenerate & Re-trust' : 'Generate, Trust & Add to hosts'}
                 </button>
                 {#if hasCert}
-                  <p class="text-[10px] text-ink-dim mt-1.5">
+                  <p class="text-[11px] text-ink-dim mt-1.5">
                     Certificate trusted in macOS Keychain. Restart your browser once.
                   </p>
                 {/if}
@@ -354,7 +354,7 @@
 
                     <div>
                       <p class="text-ink-dim mb-1">① Trust certificate (macOS Keychain)</p>
-                      <div class="flex items-center gap-2 bg-surface rounded px-2.5 py-2 font-mono text-[10px] text-ink border border-line">
+                      <div class="flex items-center gap-2 bg-surface rounded px-2.5 py-2 font-mono text-[11px] text-ink border border-line">
                         <span class="flex-1 select-all break-all">{keychainCmd}</span>
                         <button
                           onclick={() => copyCmd(keychainCmd)}
@@ -366,7 +366,7 @@
 
                     <div>
                       <p class="text-ink-dim mb-1">② Add to /etc/hosts</p>
-                      <div class="flex items-center gap-2 bg-surface rounded px-2.5 py-2 font-mono text-[10px] text-ink border border-line">
+                      <div class="flex items-center gap-2 bg-surface rounded px-2.5 py-2 font-mono text-[11px] text-ink border border-line">
                         <span class="flex-1 select-all break-all">{hostsCmd}</span>
                         <button
                           onclick={() => copyCmd(hostsCmd)}

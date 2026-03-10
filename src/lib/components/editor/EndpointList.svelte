@@ -84,7 +84,7 @@
 
   <!-- Header -->
   <div class="flex items-center justify-between px-3 h-9 border-b border-line shrink-0">
-    <span class="font-krub text-[10px] font-semibold text-ink-muted uppercase tracking-widest">Endpoints</span>
+    <span class="font-krub text-[11px] font-semibold text-ink-muted uppercase tracking-widest">Endpoints</span>
     <div class="flex items-center gap-0.5">
       <button
         onclick={() => showCurlModal = true}
@@ -126,7 +126,7 @@
             {endpoint.path}
           </span>
           {#if endpoint.description}
-            <span class="text-[10px] text-ink-dim truncate leading-tight">{endpoint.description}</span>
+            <span class="text-[11px] text-ink-dim truncate leading-tight">{endpoint.description}</span>
           {/if}
         </span>
         <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 shrink-0">

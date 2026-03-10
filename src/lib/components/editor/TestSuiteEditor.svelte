@@ -140,9 +140,9 @@
           <!-- Result indicator -->
           {#if result}
             {#if result.passed}
-              <span class="text-emerald-400 text-[10px] font-mono shrink-0">✓ {result.duration}ms</span>
+              <span class="text-emerald-400 text-[11px] font-mono shrink-0">✓ {result.duration}ms</span>
             {:else}
-              <span class="text-rose-400 text-[10px] font-mono shrink-0">{result.error ? '✗ error' : `✗ ${result.actual_status}`}</span>
+              <span class="text-rose-400 text-[11px] font-mono shrink-0">{result.error ? '✗ error' : `✗ ${result.actual_status}`}</span>
             {/if}
           {/if}
 
@@ -161,7 +161,7 @@
                 {@const assertResult = result?.assertion_results[i]}
                 <div class="flex items-center gap-2">
                   {#if assertResult}
-                    <span class="{assertResult.passed ? 'text-emerald-400' : 'text-rose-400'} shrink-0 text-[10px]">
+                    <span class="{assertResult.passed ? 'text-emerald-400' : 'text-rose-400'} shrink-0 text-[11px]">
                       {assertResult.passed ? '✓' : '✗'}
                     </span>
                   {/if}
@@ -170,7 +170,7 @@
                   <select
                     value={assertion.type}
                     onchange={(e) => updateAssertion(tc, i, { type: (e.target as HTMLSelectElement).value as TestAssertion['type'] })}
-                    class="text-[10px] bg-surface border border-line rounded px-1.5 py-0.5 text-ink outline-none"
+                    class="text-[11px] bg-surface border border-line rounded px-1.5 py-0.5 text-ink outline-none"
                   >
                     <option value="status">status</option>
                     <option value="body">body</option>
@@ -182,7 +182,7 @@
                       value={assertion.path ?? ''}
                       onchange={(e) => updateAssertion(tc, i, { path: (e.target as HTMLInputElement).value || undefined })}
                       placeholder="json.path"
-                      class="w-28 text-[10px] font-mono bg-surface border border-line rounded px-1.5 py-0.5 text-ink outline-none"
+                      class="w-28 text-[11px] font-mono bg-surface border border-line rounded px-1.5 py-0.5 text-ink outline-none"
                     />
                   {/if}
 
@@ -190,7 +190,7 @@
                   <select
                     value={assertion.operator}
                     onchange={(e) => updateAssertion(tc, i, { operator: (e.target as HTMLSelectElement).value as TestAssertion['operator'] })}
-                    class="text-[10px] bg-surface border border-line rounded px-1.5 py-0.5 text-ink outline-none"
+                    class="text-[11px] bg-surface border border-line rounded px-1.5 py-0.5 text-ink outline-none"
                   >
                     <option value="eq">eq</option>
                     <option value="contains">contains</option>
@@ -204,7 +204,7 @@
                       value={String(assertion.expected)}
                       onchange={(e) => updateAssertion(tc, i, { expected: (e.target as HTMLInputElement).value })}
                       placeholder="expected"
-                      class="flex-1 text-[10px] font-mono bg-surface border border-line rounded px-1.5 py-0.5 text-ink outline-none min-w-0"
+                      class="flex-1 text-[11px] font-mono bg-surface border border-line rounded px-1.5 py-0.5 text-ink outline-none min-w-0"
                     />
                   {/if}
 
@@ -219,7 +219,7 @@
               {/each}
               <button
                 onclick={() => addAssertion(tc)}
-                class="text-[10px] text-ink-dim hover:text-ink transition-colors"
+                class="text-[11px] text-ink-dim hover:text-ink transition-colors"
               >
                 + Add assertion
               </button>
@@ -227,7 +227,7 @@
 
             <!-- Error message -->
             {#if result?.error}
-              <p class="text-[10px] text-rose-400 font-mono">{result.error}</p>
+              <p class="text-[11px] text-rose-400 font-mono">{result.error}</p>
             {/if}
           </div>
         {/if}

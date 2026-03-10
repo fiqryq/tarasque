@@ -113,17 +113,17 @@
             <code class="text-xs font-mono text-ink-muted bg-app px-2 py-0.5 rounded border border-line">
               {baseUrl}
             </code>
-            <span class="flex items-center gap-1 text-[10px] font-mono text-run bg-run/10 px-2 py-0.5 rounded border border-run/20">
+            <span class="flex items-center gap-1 text-[11px] font-mono text-run bg-run/10 px-2 py-0.5 rounded border border-run/20">
               <span class="w-1.5 h-1.5 rounded-full bg-run animate-pulse inline-block"></span>
               running
             </span>
           </div>
         </div>
         <div class="flex flex-col items-end gap-2 shrink-0">
-          <span class="text-[10px] font-mono text-ink-dim">{collection.endpoints.length} endpoint{collection.endpoints.length !== 1 ? 's' : ''}</span>
+          <span class="text-[11px] font-mono text-ink-dim">{collection.endpoints.length} endpoint{collection.endpoints.length !== 1 ? 's' : ''}</span>
           <button
             onclick={() => fileInput.click()}
-            class="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-krub
+            class="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-krub
                    bg-surface border border-line-strong rounded text-ink-muted hover:text-ink hover:border-accent transition-colors"
             title="Import OpenAPI / Swagger spec"
           >
@@ -153,7 +153,7 @@
               <ChevronRight size={13} class="text-ink-dim shrink-0" />
             {/if}
             <span class="text-xs font-krub font-semibold text-ink uppercase tracking-widest">/{tag}</span>
-            <span class="ml-auto text-[10px] font-mono text-ink-dim">{endpoints.length}</span>
+            <span class="ml-auto text-[11px] font-mono text-ink-dim">{endpoints.length}</span>
           </button>
 
           <!-- Endpoints -->
@@ -171,7 +171,7 @@
                     class="w-full flex items-center gap-3 px-4 py-3 hover:bg-hover/20 transition-colors duration-150 group"
                   >
                     <!-- Method badge -->
-                    <span class="text-[10px] font-mono font-bold w-14 text-center shrink-0 py-0.5 rounded border
+                    <span class="text-[11px] font-mono font-bold w-14 text-center shrink-0 py-0.5 rounded border
                                  {style.text} {style.bg} {style.border}">
                       {endpoint.method}
                     </span>
@@ -181,7 +181,7 @@
 
                     <!-- Status hint -->
                     {#if activeScenario}
-                      <span class="text-[10px] font-mono px-1.5 py-0.5 rounded border {statusStyle(activeScenario.status)} shrink-0">
+                      <span class="text-[11px] font-mono px-1.5 py-0.5 rounded border {statusStyle(activeScenario.status)} shrink-0">
                         {activeScenario.status}
                       </span>
                     {/if}
@@ -242,7 +242,7 @@
                             {#each Object.entries(paramsScenario.query_params ?? {}) as [key, val] (key)}
                               <div class="flex items-center px-3 py-1.5 border-b border-line/30 last:border-0 hover:bg-hover/20">
                                 <span class="text-[11px] font-mono text-accent w-28 truncate">{key}</span>
-                                <span class="text-[10px] font-mono text-ink-dim w-20">query</span>
+                                <span class="text-[11px] font-mono text-ink-dim w-20">query</span>
                                 <span class="text-[11px] font-mono text-ink-muted flex-1">{val || '—'}</span>
                               </div>
                             {/each}
@@ -258,7 +258,7 @@
                             <div class="border border-line rounded-lg overflow-hidden">
                               <!-- Scenario header -->
                               <div class="flex items-center gap-3 px-3 py-2 bg-surface/60 border-b border-line/50">
-                                <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded border {statusStyle(scenario.status)}">
+                                <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded border {statusStyle(scenario.status)}">
                                   {scenario.status} {STATUS_TEXT[scenario.status] ?? ''}
                                 </span>
                                 <span class="text-[11px] font-inter text-ink-muted flex-1">{scenario.name}</span>
@@ -274,7 +274,7 @@
                               {#if Object.keys(scenario.headers).length > 0}
                                 <div class="px-3 py-2 border-b border-line/30">
                                   {#each Object.entries(scenario.headers) as [k, v] (k)}
-                                    <div class="flex items-center gap-2 text-[10px] font-mono py-0.5">
+                                    <div class="flex items-center gap-2 text-[11px] font-mono py-0.5">
                                       <span class="text-ink-dim w-40 shrink-0 truncate">{k}</span>
                                       <span class="text-ink-muted">{v}</span>
                                     </div>

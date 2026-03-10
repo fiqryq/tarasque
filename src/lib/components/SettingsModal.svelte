@@ -29,7 +29,7 @@
 
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onclick={onClose}>
   <div 
-    class="w-[500px] max-h-[80vh] bg-surface border border-line rounded-xl shadow-2xl overflow-hidden"
+    class="w-[480px] max-h-[80vh] bg-surface border border-line rounded-xl shadow-2xl overflow-hidden"
     onclick={(e) => e.stopPropagation()}
   >
     <!-- Header -->

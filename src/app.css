@@ -9,7 +9,7 @@
     background-color: #1d1d1f;
     color: #f5f5f7;
     font-family: 'Inter', sans-serif;
-    font-size: 13px;
+    font-size: 14px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     user-select: none;
@@ -50,3 +50,14 @@
 [data-theme="light"] .text-ink-dim   { color: #636366 !important; }
 [data-theme="light"] .bg-\[#141414\]  { background-color: #e5e5ea !important; }
 [data-theme="light"] .bg-\[#191919\]  { background-color: #f2f2f7 !important; }
+
+/* Panel and active surface tokens */
+[data-theme="light"] .bg-panel  { background-color: #e5e5ea !important; }
+[data-theme="light"] .bg-active { background-color: #d1d1d6 !important; }
+
+/* Expanded log row background (hardcoded #151515 in LogPanel) */
+[data-theme="light"] .bg-\[#151515\] { background-color: #f2f2f7 !important; }
+
+/* Scrollbar thumb */
+[data-theme="light"] ::-webkit-scrollbar-thumb       { background: #c7c7cc !important; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: #aeaeb2 !important; }

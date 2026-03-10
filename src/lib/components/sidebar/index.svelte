@@ -94,18 +94,18 @@
       $proxyStatus === 'running' ? 'bg-run' :
       $proxyStatus === 'stopped' ? 'bg-ink-dim' : 'bg-warn'
     }"></span>
-    <span class="text-[10px] font-krub text-ink-dim flex-1 uppercase tracking-widest">nginx</span>
+    <span class="text-[11px] font-krub text-ink-dim flex-1 uppercase tracking-widest">nginx</span>
     {#if $proxyLoading}
-      <span class="text-[10px] text-ink-dim">…</span>
+      <span class="text-[11px] text-ink-dim">…</span>
     {:else if $proxyStatus === 'running'}
       <button
         onclick={stopProxy}
-        class="text-[10px] font-krub text-ink-dim hover:text-err transition-colors"
+        class="text-[11px] font-krub text-ink-dim hover:text-err transition-colors"
       >Stop</button>
     {:else}
       <button
         onclick={startProxy}
-        class="text-[10px] font-krub text-ink-dim hover:text-run transition-colors"
+        class="text-[11px] font-krub text-ink-dim hover:text-run transition-colors"
       >Start</button>
     {/if}
   </div>

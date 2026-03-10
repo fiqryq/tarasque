@@ -100,7 +100,7 @@
       <span class="text-rose-400 text-[11px] font-mono truncate">{jsonError}</span>
       <button
         onclick={formatJson}
-        class="ml-auto px-2 py-1 text-[10px] font-mono bg-rose-500/20 text-rose-400 rounded hover:bg-rose-500/30 transition-colors shrink-0"
+        class="ml-auto px-2 py-1 text-[11px] font-mono bg-rose-500/20 text-rose-400 rounded hover:bg-rose-500/30 transition-colors shrink-0"
       >
         Format
       </button>

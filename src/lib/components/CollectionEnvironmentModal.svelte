@@ -124,7 +124,7 @@
         <div class="border-t border-line p-2">
           <button
             onclick={addEnv}
-            class="w-full flex items-center justify-center gap-1 py-1 text-[10px] text-ink-dim hover:text-ink transition-colors"
+            class="w-full flex items-center justify-center gap-1 py-1 text-[11px] text-ink-dim hover:text-ink transition-colors"
           >
             <Plus size={10} /> New Environment
           </button>
@@ -176,7 +176,7 @@
           </div>
           <button
             onclick={addVar}
-            class="text-[10px] text-ink-dim hover:text-ink transition-colors text-left"
+            class="text-[11px] text-ink-dim hover:text-ink transition-colors text-left"
           >
             + Add variable
           </button>

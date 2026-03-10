@@ -93,7 +93,7 @@
           {#if isExpanded(collection.id)}
             <div class="pb-1">
               {#if collection.endpoints.length === 0}
-                <div class="pl-8 pr-3 py-1.5 text-[10px] text-ink-dim italic">
+                <div class="pl-8 pr-3 py-1.5 text-[11px] text-ink-dim italic">
                   No endpoints defined
                 </div>
               {:else}
