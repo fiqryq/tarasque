@@ -15,6 +15,17 @@ fn proxy_dir(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(base.join("proxy"))
 }
 
+/// Validate hostname — letters, digits, hyphens, and dots only. No path separators.
+pub fn validate_hostname(hostname: &str) -> Result<(), String> {
+    if hostname.is_empty() {
+        return Err("Hostname must not be empty".into());
+    }
+    if !hostname.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '.') {
+        return Err(format!("Invalid hostname '{hostname}': only letters, digits, hyphens, and dots are allowed"));
+    }
+    Ok(())
+}
+
 /// Write cert.pem and private.key for a hostname to AppData/proxy/cert/{hostname}/
 pub fn write_cert_files(
     app: &AppHandle,
@@ -22,6 +33,7 @@ pub fn write_cert_files(
     cert_pem: &str,
     key_pem: &str,
 ) -> Result<(), String> {
+    validate_hostname(hostname)?;
     let cert_dir = proxy_dir(app)?.join("cert").join(hostname);
     std::fs::create_dir_all(&cert_dir)
         .map_err(|e| format!("Failed to create cert dir: {e}"))?;
@@ -67,6 +79,7 @@ pub fn start_proxy(
 
     // Write per-hostname server configs
     for (hostname, port) in aliases {
+        validate_hostname(hostname)?;
         let conf = server_conf(hostname, *port);
         std::fs::write(conf_d_dir.join(format!("{hostname}.conf")), conf)
             .map_err(|e| format!("Failed to write {hostname}.conf: {e}"))?;

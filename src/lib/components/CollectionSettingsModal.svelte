@@ -28,10 +28,10 @@
   let hasCert = $derived(!!aliasCertPem && !!aliasKeyPem);
 
   const certFilePath = $derived(
-    aliasHostname ? `~/Library/Application Support/com.tarasque.app/proxy/cert/${aliasHostname}/cert.pem` : ''
+    aliasHostname ? `$HOME/Library/Application Support/com.tarasque.app/proxy/cert/${aliasHostname}/cert.pem` : ''
   );
   const keychainCmd = $derived(
-    `security add-trusted-cert -k ~/Library/Keychains/login.keychain-db "${certFilePath}"`
+    `security add-trusted-cert -k "$HOME/Library/Keychains/login.keychain-db" "${certFilePath}"`
   );
   const hostsCmd = $derived(
     `sudo sh -c 'echo "127.0.0.1 ${aliasHostname || '<hostname>'}" >> /etc/hosts'`

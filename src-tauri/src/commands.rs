@@ -393,6 +393,7 @@ pub fn generate_alias_cert(app: AppHandle, hostname: String) -> Result<AliasCred
 /// Add `127.0.0.1 <hostname>` to /etc/hosts (requires admin password via macOS auth dialog).
 #[tauri::command]
 pub fn add_hosts_entry(hostname: String) -> Result<(), String> {
+    crate::proxy::validate_hostname(&hostname)?;
     #[cfg(target_os = "macos")]
     {
         let entry = format!("127.0.0.1 {}", hostname);

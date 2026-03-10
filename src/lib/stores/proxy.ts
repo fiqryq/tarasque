@@ -11,7 +11,7 @@ export const proxyLoading = writable(false);
 
 function enabledAliases(cols: Collection[]) {
   return cols
-    .filter((c) => c.alias_enabled && c.alias_hostname && c.alias_cert_pem)
+    .filter((c) => c.alias_enabled && c.alias_hostname && c.alias_cert_pem && c.alias_key_pem)
     .map((c) => ({ hostname: c.alias_hostname!, port: c.port }));
 }
 
