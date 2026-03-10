@@ -126,6 +126,7 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
                                     headers,
                                     body,
                                     query_params: HashMap::new(),
+                                    match_rules: Vec::new(),
                                 });
                             }
                         }
@@ -139,6 +140,7 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
                                 headers: HashMap::from([("Content-Type".to_string(), "application/json".to_string())]),
                                 body: "{}".to_string(),
                                 query_params: HashMap::new(),
+                                match_rules: Vec::new(),
                             });
                         }
 

@@ -1,6 +1,7 @@
 <script lang="ts">
   import MonacoEditor from './MonacoEditor.svelte';
-  import type { Scenario } from '$lib/types';
+  import ScenarioRules from './ScenarioRules.svelte';
+  import type { Scenario, MatchRule } from '$lib/types';
   import { HelpCircle, X } from 'lucide-svelte';
 
   interface Props {
@@ -14,8 +15,14 @@
     onChange({ ...scenario, ...partial });
   }
 
-  type Tab = 'params' | 'headers' | 'body' | 'response';
+  type Tab = 'params' | 'headers' | 'body' | 'response' | 'rules';
   let activeTab = $state<Tab>('body');
+
+  const matchRules = $derived(scenario.match_rules ?? []);
+
+  function updateRules(rules: MatchRule[]) {
+    update({ match_rules: rules });
+  }
 
   // Local mirrors for controlled inputs — synced from prop so external updates (e.g. template load) reflect immediately
   let localStatus  = $state(scenario.status);
@@ -256,9 +263,9 @@
     </div>
   </div>
 
-  <!-- Tab bar: Params | Headers | Body -->
+  <!-- Tab bar: Params | Headers | Body | Response | Rules -->
   <div class="flex items-center px-4 border-b border-line shrink-0 gap-0">
-    {#each ([['params', 'Params', Object.keys(queryParams).length], ['headers', 'Headers', Object.keys(scenario.headers).length], ['body', 'Body', null], ['response', 'Response', null]] as const) as [tab, label, count]}
+    {#each ([['params', 'Params', Object.keys(queryParams).length], ['headers', 'Headers', Object.keys(scenario.headers).length], ['body', 'Body', null], ['response', 'Response', null], ['rules', 'Rules', matchRules.length || null]] as const) as [tab, label, count]}
       <button
         onclick={() => activeTab = tab}
         class="flex items-center gap-1.5 px-3 h-8 text-[11px] font-krub border-b-2 transition-colors duration-150
@@ -470,6 +477,16 @@
         <MonacoEditor
           value={scenario.body}
           onChange={(val) => update({ body: val })}
+        />
+      </div>
+    {/if}
+
+    <!-- Rules tab -->
+    {#if activeTab === 'rules'}
+      <div class="flex-1 overflow-y-auto">
+        <ScenarioRules
+          rules={matchRules}
+          onchange={(rules) => updateRules(rules)}
         />
       </div>
     {/if}

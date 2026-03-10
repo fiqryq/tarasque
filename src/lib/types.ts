@@ -1,3 +1,10 @@
+export interface MatchRule {
+  source: 'header' | 'query' | 'body' | 'path_param';
+  key: string;
+  operator: 'eq' | 'contains' | 'exists' | 'not_exists';
+  value?: string;
+}
+
 export interface Scenario {
   id: string;
   name: string;
@@ -6,6 +13,7 @@ export interface Scenario {
   headers: Record<string, string>;
   query_params: Record<string, string>;
   body: string;
+  match_rules?: MatchRule[];
 }
 
 export interface Endpoint {

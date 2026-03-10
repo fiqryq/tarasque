@@ -2,6 +2,15 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct MatchRule {
+    pub source: String,   // "header" | "query" | "body" | "path_param"
+    pub key: String,
+    pub operator: String, // "eq" | "contains" | "exists" | "not_exists"
+    #[serde(default)]
+    pub value: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Scenario {
     pub id: String,
     pub name: String,
@@ -11,6 +20,8 @@ pub struct Scenario {
     pub body: String,
     #[serde(default)]
     pub query_params: HashMap<String, String>,
+    #[serde(default)]
+    pub match_rules: Vec<MatchRule>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

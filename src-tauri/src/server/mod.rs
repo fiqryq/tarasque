@@ -1,4 +1,5 @@
 pub mod router;
+pub mod rules;
 pub mod state;
 pub mod template;
 
@@ -325,10 +326,27 @@ async fn mock_handler(
             }
 
             if let Some(route_params) = router::match_path(&endpoint.path, &path) {
+                // Rules-based selection: first scenario whose rules all match wins.
+                // Falls back to the manually active scenario, then first scenario.
                 let scenario = endpoint
                     .scenarios
                     .iter()
-                    .find(|s| s.id == endpoint.active_scenario_id)
+                    .find(|s| {
+                        !s.match_rules.is_empty()
+                            && rules::evaluate_rules(
+                                &s.match_rules,
+                                &headers,
+                                &query_params,
+                                body_json.as_ref(),
+                                &route_params,
+                            )
+                    })
+                    .or_else(|| {
+                        endpoint
+                            .scenarios
+                            .iter()
+                            .find(|s| s.id == endpoint.active_scenario_id)
+                    })
                     .or_else(|| endpoint.scenarios.first());
 
                 if let Some(scenario) = scenario {
