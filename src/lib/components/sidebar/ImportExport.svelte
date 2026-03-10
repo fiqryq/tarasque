@@ -14,11 +14,21 @@
     if (!file) return;
 
     const content = await file.text();
+    const isTarasqueJson = file.name.endsWith('.tarasque.json');
 
     try {
-      const imported = await invoke<Collection[]>('import_openapi', { content });
-      importCollections(imported);
-      toasts.show('success', `Imported ${imported.length} collection(s)`);
+      if (isTarasqueJson) {
+        // Import as a Tarasque collection JSON directly
+        const col: Collection = JSON.parse(content);
+        col.id = crypto.randomUUID(); // fresh ID to avoid collisions
+        importCollections([col]);
+        toasts.show('success', `Imported collection: ${col.name}`);
+      } else {
+        // OpenAPI / Swagger import
+        const imported = await invoke<Collection[]>('import_openapi', { content });
+        importCollections(imported);
+        toasts.show('success', `Imported ${imported.length} collection(s)`);
+      }
     } catch (err) {
       toasts.show('error', `Import failed: ${err}`);
     }
@@ -33,8 +43,9 @@
       const json = await invoke<string>('export_collection_json', {
         collection: exportingCollection,
       });
-      downloadFile(`${exportingCollection.name}.json`, json, 'application/json');
-      toasts.show('success', 'Exported as JSON');
+      const safeName = exportingCollection.name.replace(/\s+/g, '-');
+      downloadFile(`${safeName}.tarasque.json`, json, 'application/json');
+      toasts.show('success', 'Exported as .tarasque.json');
     } catch (err) {
       toasts.show('error', `Export failed: ${err}`);
     }
@@ -77,7 +88,7 @@
 
 <input
   type="file"
-  accept=".json,.yaml,.yml"
+  accept=".json,.yaml,.yml,.tarasque.json"
   bind:this={fileInput}
   onchange={handleImport}
   class="hidden"
