@@ -169,6 +169,16 @@ export function updateCollectionProxy(id: string, enabled: boolean, url: string,
   scheduleAutoSave();
 }
 
+export function updateCollectionEnvironments(
+  id: string,
+  updates: Partial<Pick<Collection, 'environments' | 'active_env_id'>>
+) {
+  collections.update((cols) =>
+    cols.map((c) => (c.id === id ? { ...c, ...updates } : c))
+  );
+  scheduleAutoSave();
+}
+
 export function updateCollectionAlias(
   id: string,
   updates: Partial<Pick<Collection, 'alias_enabled' | 'alias_hostname' | 'alias_port' | 'alias_cert_pem' | 'alias_key_pem'>>

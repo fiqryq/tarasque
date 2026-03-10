@@ -84,6 +84,8 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
         alias_port: None,
         alias_cert_pem: None,
         alias_key_pem: None,
+        environments: Vec::new(),
+        active_env_id: None,
     };
 
     if let Some(paths) = spec.get("paths").and_then(|p| p.as_object()) {

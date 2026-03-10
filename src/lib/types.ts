@@ -25,6 +25,12 @@ export interface Endpoint {
   description?: string;
 }
 
+export interface Environment {
+  id: string;
+  name: string;
+  variables: Record<string, string>;
+}
+
 export interface Collection {
   id: string;
   name: string;
@@ -40,6 +46,9 @@ export interface Collection {
   alias_port?: number;
   alias_cert_pem?: string;
   alias_key_pem?: string;
+  // Environments
+  environments?: Environment[];
+  active_env_id?: string;
 }
 
 export interface AppData {

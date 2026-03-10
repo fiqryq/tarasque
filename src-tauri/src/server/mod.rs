@@ -315,6 +315,13 @@ async fn mock_handler(
 
     let collection = state.collection.read().await;
 
+    // Resolve active environment variables
+    let env_vars: HashMap<String, String> = collection.environments
+        .iter()
+        .find(|e| Some(&e.id) == collection.active_env_id.as_ref())
+        .map(|e| e.variables.clone())
+        .unwrap_or_default();
+
     // --- Try to match a mock endpoint ---
     // For HEAD requests: try HEAD endpoints first, then fall back to matching GET endpoints.
     let match_methods: Vec<&str> = if method.to_uppercase() == "HEAD" {
@@ -367,6 +374,7 @@ async fn mock_handler(
                         &headers,
                         body_json.as_ref(),
                         &store_snapshot,
+                        &env_vars,
                     );
                     if !store_ops.is_empty() {
                         let mut store = state.store.write().await;

@@ -18,6 +18,7 @@ impl TemplateEngine {
         headers: &HashMap<String, String>,
         body_json: Option<&serde_json::Value>,
         store: &HashMap<String, serde_json::Value>,
+        env_vars: &HashMap<String, String>,
     ) -> (String, Vec<StoreOp>) {
         let mut result = body.to_string();
 
@@ -50,6 +51,12 @@ impl TemplateEngine {
 
         if let Some(json) = body_json {
             Self::render_json_paths(&mut result, json, "request.body");
+        }
+
+        // Environment variable substitution: {{env.key}}
+        for (key, value) in env_vars {
+            let placeholder = format!("{{{{env.{}}}}}", key);
+            result = result.replace(&placeholder, value);
         }
 
         // Store reads: {{store.key}}
@@ -147,7 +154,7 @@ mod tests {
     use super::*;
 
     fn render(body: &str) -> String {
-        TemplateEngine::render(body, &HashMap::new(), &HashMap::new(), &HashMap::new(), None, &HashMap::new()).0
+        TemplateEngine::render(body, &HashMap::new(), &HashMap::new(), &HashMap::new(), None, &HashMap::new(), &HashMap::new()).0
     }
 
     #[test]
@@ -171,6 +178,7 @@ mod tests {
             &HashMap::new(),
             None,
             &HashMap::new(),
+            &HashMap::new(),
         );
         assert_eq!(result, r#"{"user_id": "123"}"#);
     }
@@ -186,6 +194,7 @@ mod tests {
             &HashMap::new(),
             None,
             &HashMap::new(),
+            &HashMap::new(),
         );
         assert_eq!(result, r#"{"page": "1"}"#);
     }
@@ -199,6 +208,7 @@ mod tests {
             &HashMap::new(),
             &HashMap::new(),
             Some(&body),
+            &HashMap::new(),
             &HashMap::new(),
         );
         assert_eq!(result, r#"{"name": "John", "age": 30}"#);
@@ -223,6 +233,7 @@ mod tests {
             &HashMap::new(),
             None,
             &store,
+            &HashMap::new(),
         );
         assert_eq!(result, r#"{"token": "abc123"}"#);
     }
@@ -236,6 +247,7 @@ mod tests {
             &HashMap::new(),
             None,
             &HashMap::new(),
+            &HashMap::new(),
         );
         assert_eq!(result, r#"{"ok": true}"#);
         assert_eq!(ops.len(), 1);
@@ -246,6 +258,22 @@ mod tests {
     }
 
     #[test]
+    fn test_env_variable() {
+        let mut env_vars = HashMap::new();
+        env_vars.insert("baseUrl".to_string(), "https://example.com".to_string());
+        let (result, _) = TemplateEngine::render(
+            r#"{"url": "{{env.baseUrl}}"}"#,
+            &HashMap::new(),
+            &HashMap::new(),
+            &HashMap::new(),
+            None,
+            &HashMap::new(),
+            &env_vars,
+        );
+        assert_eq!(result, r#"{"url": "https://example.com"}"#);
+    }
+
+    #[test]
     fn store_delete_returns_op_and_removes_placeholder() {
         let (result, ops) = TemplateEngine::render(
             r#"{"ok": true}{{store.delete.token}}"#,
@@ -253,6 +281,7 @@ mod tests {
             &HashMap::new(),
             &HashMap::new(),
             None,
+            &HashMap::new(),
             &HashMap::new(),
         );
         assert_eq!(result, r#"{"ok": true}"#);

@@ -36,6 +36,13 @@ pub struct Endpoint {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Environment {
+    pub id: String,
+    pub name: String,
+    pub variables: HashMap<String, String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Collection {
     pub id: String,
     pub name: String,
@@ -53,6 +60,11 @@ pub struct Collection {
     pub alias_port: Option<u16>,
     pub alias_cert_pem: Option<String>,
     pub alias_key_pem: Option<String>,
+    // Per-collection environments
+    #[serde(default)]
+    pub environments: Vec<Environment>,
+    #[serde(default)]
+    pub active_env_id: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
