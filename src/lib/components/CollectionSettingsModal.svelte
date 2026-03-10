@@ -23,8 +23,6 @@
   let aliasCertPem   = $state(collection.alias_cert_pem ?? '');
   let aliasKeyPem    = $state(collection.alias_key_pem ?? '');
   let generatingCert  = $state(false);
-  let trustingCert    = $state(false);
-  let addingHosts     = $state(false);
   let certMode = $state<'auto' | 'manual'>('auto');
 
   let hasCert = $derived(!!aliasCertPem && !!aliasKeyPem);
@@ -73,23 +71,6 @@
     }
   }
 
-  async function trustCert() {
-    trustingCert = true;
-    try {
-      await invoke('trust_cert_macos', { certPem: aliasCertPem });
-      toasts.show('success', `Certificate trusted — restart your browser for it to take effect`);
-    } catch (err) {
-      const msg = String(err);
-      if (msg.includes('cancelled')) {
-        toasts.show('info', 'Certificate trust cancelled');
-      } else {
-        toasts.show('error', `Trust failed: ${msg}`);
-      }
-    } finally {
-      trustingCert = false;
-    }
-  }
-
   function downloadCert() {
     const blob = new Blob([aliasCertPem], { type: 'application/x-pem-file' });
     const url  = URL.createObjectURL(blob);
@@ -98,30 +79,6 @@
     a.download = `${aliasHostname || 'alias'}.crt`;
     a.click();
     URL.revokeObjectURL(url);
-  }
-
-  function copyHostsEntry() {
-    const entry = `127.0.0.1  ${aliasHostname}`;
-    navigator.clipboard.writeText(entry);
-    toasts.show('info', 'Copied /etc/hosts entry to clipboard');
-  }
-
-  async function addHostsEntry() {
-    if (!aliasHostname.trim()) return;
-    addingHosts = true;
-    try {
-      await invoke('add_hosts_entry', { hostname: aliasHostname.trim() });
-      toasts.show('success', `Added ${aliasHostname} to /etc/hosts`);
-    } catch (err) {
-      const msg = String(err);
-      if (msg.includes('cancelled') || msg.includes('User canceled')) {
-        toasts.show('info', 'Cancelled');
-      } else {
-        toasts.show('error', `Failed: ${msg}`);
-      }
-    } finally {
-      addingHosts = false;
-    }
   }
 
   function copyCmd(cmd: string) {
@@ -143,6 +100,14 @@
       aliasKeyPem  = result.key_pem;
       await invoke('trust_cert_macos', { certPem: aliasCertPem });
       await invoke('add_hosts_entry', { hostname: aliasHostname.trim() });
+      // Persist cert PEM to collection so hasCert stays true after modal re-open
+      updateCollectionAlias(collection.id, {
+        alias_enabled: aliasEnabled,
+        alias_hostname: aliasHostname || undefined,
+        alias_port: aliasPort,
+        alias_cert_pem: aliasCertPem || undefined,
+        alias_key_pem: aliasKeyPem || undefined,
+      });
       toasts.show('success', `HTTPS alias set up for ${aliasHostname} — restart your browser`);
     } catch (err) {
       const msg = String(err);
