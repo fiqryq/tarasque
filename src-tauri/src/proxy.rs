@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 // Templates embedded at compile time — no runtime file reads needed
 const NGINX_CONF: &str = include_str!("../templates/nginx.conf");
@@ -139,21 +139,25 @@ pub fn get_proxy_status(app: &AppHandle) -> String {
     if !compose_path.exists() {
         return "stopped".into();
     }
+    // Use Go template format to get only the State field — avoids false positives
+    // from container names or image names that contain the word "running"
     let output = std::process::Command::new("docker")
         .args([
             "compose",
             "-f",
             &compose_path.to_string_lossy(),
             "ps",
+            "--filter",
+            "name=tarasque-nginx",
             "--format",
-            "json",
+            "{{.State}}",
         ])
         .output();
 
     match output {
         Ok(out) if out.status.success() => {
             let text = String::from_utf8_lossy(&out.stdout);
-            if text.contains("tarasque-nginx") && text.contains("running") {
+            if text.trim() == "running" {
                 "running".into()
             } else {
                 "stopped".into()
