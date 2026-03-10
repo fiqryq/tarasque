@@ -28,17 +28,17 @@ impl TemplateEngine {
         result = result.replace("{{random.string}}", &Self::random_string(6));
 
         for (key, value) in params {
-            let placeholder = format!("{{request.params.{}}}", key);
+            let placeholder = format!("{{{{request.params.{}}}}}", key);
             result = result.replace(&placeholder, value);
         }
 
         for (key, value) in query {
-            let placeholder = format!("{{request.query.{}}}", key);
+            let placeholder = format!("{{{{request.query.{}}}}}", key);
             result = result.replace(&placeholder, value);
         }
 
         for (key, value) in headers {
-            let placeholder = format!("{{request.headers.{}}}", key);
+            let placeholder = format!("{{{{request.headers.{}}}}}", key);
             result = result.replace(&placeholder, value);
         }
 
@@ -63,7 +63,7 @@ impl TemplateEngine {
     fn render_json_paths(result: &mut String, json: &serde_json::Value, prefix: &str) {
         if let Some(obj) = json.as_object() {
             for (key, value) in obj {
-                let placeholder = format!("{{.{}.{}}}", prefix, key);
+                let placeholder = format!("{{{{{}.{}}}}}", prefix, key);
                 let value_str = match value {
                     serde_json::Value::String(s) => s.clone(),
                     _ => value.to_string(),
