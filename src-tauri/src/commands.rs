@@ -155,6 +155,7 @@ pub fn import_openapi(content: String) -> Result<Vec<Collection>, String> {
                             scenarios,
                             active_scenario_id: active_id,
                             description: None,
+                            sequence_mode: false,
                         });
                     }
                 }

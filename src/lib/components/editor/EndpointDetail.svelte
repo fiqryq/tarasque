@@ -100,6 +100,19 @@
     />
   </div>
 
+  <!-- Sequence mode toggle -->
+  <div class="flex items-center gap-2 px-4 py-1.5 border-b border-line shrink-0">
+    <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-ink-dim hover:text-ink transition-colors">
+      <input
+        type="checkbox"
+        checked={endpoint.sequence_mode ?? false}
+        onchange={(e) => onUpdate({ ...endpoint, sequence_mode: e.currentTarget.checked })}
+        class="w-3 h-3 accent-accent"
+      />
+      Sequence mode — cycle scenarios in order on each request
+    </label>
+  </div>
+
   <!-- Scenario tabs -->
   <div class="flex items-center px-4 h-9 border-b border-line overflow-x-auto shrink-0 gap-0.5">
     {#each endpoint.scenarios as scenario (scenario.id)}

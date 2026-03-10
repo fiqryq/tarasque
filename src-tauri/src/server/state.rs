@@ -23,6 +23,8 @@ pub struct AppState {
     pub store: Arc<RwLock<HashMap<String, serde_json::Value>>>,
     /// Per-endpoint request statistics.
     pub stats: Arc<RwLock<HashMap<String, EndpointStats>>>,
+    /// Per-endpoint sequence counters for sequence mode.
+    pub sequence_counters: Arc<RwLock<HashMap<String, usize>>>,
 }
 
 /// Per-collection shutdown handles.

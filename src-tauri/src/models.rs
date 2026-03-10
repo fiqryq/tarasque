@@ -33,6 +33,8 @@ pub struct Endpoint {
     pub active_scenario_id: String,
     #[serde(default)]
     pub description: Option<String>,
+    #[serde(default)]
+    pub sequence_mode: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

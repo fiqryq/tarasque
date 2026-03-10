@@ -89,6 +89,7 @@ fn spawn_http_server(
                 app_handle,
                 store: Arc::new(RwLock::new(HashMap::new())),
                 stats: Arc::new(RwLock::new(HashMap::new())),
+                sequence_counters: Arc::new(RwLock::new(HashMap::new())),
             });
 
             let bind_result = HttpServer::new(move || {
@@ -198,6 +199,7 @@ fn spawn_https_server(
                 app_handle,
                 store: Arc::new(RwLock::new(HashMap::new())),
                 stats: Arc::new(RwLock::new(HashMap::new())),
+                sequence_counters: Arc::new(RwLock::new(HashMap::new())),
             });
 
             let bind_result = HttpServer::new(move || {
@@ -337,28 +339,38 @@ async fn mock_handler(
             }
 
             if let Some(route_params) = router::match_path(&endpoint.path, &path) {
-                // Rules-based selection: first scenario whose rules all match wins.
-                // Falls back to the manually active scenario, then first scenario.
-                let scenario = endpoint
-                    .scenarios
-                    .iter()
-                    .find(|s| {
-                        !s.match_rules.is_empty()
-                            && rules::evaluate_rules(
-                                &s.match_rules,
-                                &headers,
-                                &query_params,
-                                body_json.as_ref(),
-                                &route_params,
-                            )
-                    })
-                    .or_else(|| {
-                        endpoint
-                            .scenarios
-                            .iter()
-                            .find(|s| s.id == endpoint.active_scenario_id)
-                    })
-                    .or_else(|| endpoint.scenarios.first());
+                // Scenario selection:
+                // 1. Sequence mode: cycle scenarios in order per request.
+                // 2. Rules-based: first scenario whose rules all match wins.
+                // 3. Active scenario fallback, then first scenario.
+                let scenario = if endpoint.sequence_mode && !endpoint.scenarios.is_empty() {
+                    let mut counters = state.sequence_counters.write().await;
+                    let counter = counters.entry(endpoint.id.clone()).or_insert(0);
+                    let idx = *counter % endpoint.scenarios.len();
+                    *counter += 1;
+                    endpoint.scenarios.get(idx)
+                } else {
+                    endpoint
+                        .scenarios
+                        .iter()
+                        .find(|s| {
+                            !s.match_rules.is_empty()
+                                && rules::evaluate_rules(
+                                    &s.match_rules,
+                                    &headers,
+                                    &query_params,
+                                    body_json.as_ref(),
+                                    &route_params,
+                                )
+                        })
+                        .or_else(|| {
+                            endpoint
+                                .scenarios
+                                .iter()
+                                .find(|s| s.id == endpoint.active_scenario_id)
+                        })
+                        .or_else(|| endpoint.scenarios.first())
+                };
 
                 if let Some(scenario) = scenario {
                     if scenario.delay_ms > 0 {

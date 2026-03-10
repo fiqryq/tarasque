@@ -23,6 +23,7 @@ export interface Endpoint {
   scenarios: Scenario[];
   active_scenario_id: string;
   description?: string;
+  sequence_mode?: boolean;
 }
 
 export interface Environment {
