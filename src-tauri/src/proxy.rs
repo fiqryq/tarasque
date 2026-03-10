@@ -152,16 +152,15 @@ pub fn get_proxy_status(app: &AppHandle) -> String {
     if !compose_path.exists() {
         return "stopped".into();
     }
-    // Use Go template format to get only the State field — avoids false positives
-    // from container names or image names that contain the word "running"
+    // Use Go template format to get only the State field.
+    // Note: `docker compose ps` does not support --filter name=, so we rely on
+    // the single-service compose file always returning exactly one container state.
     let output = std::process::Command::new("docker")
         .args([
             "compose",
             "-f",
             &compose_path.to_string_lossy(),
             "ps",
-            "--filter",
-            "name=tarasque-nginx",
             "--format",
             "{{.State}}",
         ])
