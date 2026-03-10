@@ -4,18 +4,41 @@ pub fn match_path(pattern: &str, actual: &str) -> Option<HashMap<String, String>
     let pattern_parts: Vec<&str> = pattern.split('/').collect();
     let actual_parts: Vec<&str> = actual.split('/').collect();
 
-    if pattern_parts.len() != actual_parts.len() {
-        return None;
+    let mut params = HashMap::new();
+    let mut pi = 0;
+    let mut ai = 0;
+
+    while pi < pattern_parts.len() {
+        let p = pattern_parts[pi];
+
+        if p == "**" {
+            // Match any remaining segments (greedy)
+            return Some(params);
+        } else if p == "*" {
+            // Match exactly one segment
+            if ai >= actual_parts.len() {
+                return None;
+            }
+            ai += 1;
+            pi += 1;
+        } else if let Some(key) = p.strip_prefix(':') {
+            if ai >= actual_parts.len() {
+                return None;
+            }
+            params.insert(key.to_string(), actual_parts[ai].to_string());
+            ai += 1;
+            pi += 1;
+        } else {
+            if ai >= actual_parts.len() || p != actual_parts[ai] {
+                return None;
+            }
+            ai += 1;
+            pi += 1;
+        }
     }
 
-    let mut params = HashMap::new();
-
-    for (p, a) in pattern_parts.iter().zip(actual_parts.iter()) {
-        if let Some(key) = p.strip_prefix(':') {
-            params.insert(key.to_string(), a.to_string());
-        } else if p != a {
-            return None;
-        }
+    if ai != actual_parts.len() {
+        return None;
     }
 
     Some(params)
@@ -81,5 +104,35 @@ mod tests {
         let params = HashMap::new();
         let body = r#"{"message": "hello"}"#;
         assert_eq!(substitute_params(body, &params), body);
+    }
+
+    #[test]
+    fn wildcard_single_matches_one_segment() {
+        let result = match_path("/api/*", "/api/users");
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn wildcard_single_does_not_match_two_segments() {
+        let result = match_path("/api/*", "/api/users/123");
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn wildcard_double_matches_one_segment() {
+        let result = match_path("/api/**", "/api/users");
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn wildcard_double_matches_multiple_segments() {
+        let result = match_path("/api/**", "/api/users/123/posts");
+        assert!(result.is_some());
+    }
+
+    #[test]
+    fn wildcard_double_matches_empty_tail() {
+        let result = match_path("/api/**", "/api/");
+        assert!(result.is_some());
     }
 }
