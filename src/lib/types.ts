@@ -10,7 +10,7 @@ export interface Scenario {
 
 export interface Endpoint {
   id: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
   path: string;
   scenarios: Scenario[];
   active_scenario_id: string;
@@ -62,7 +62,7 @@ export interface TestAssertion {
 export interface TestCase {
   id: string;
   name: string;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
   path: string;
   headers?: Record<string, string>;
   body?: string;

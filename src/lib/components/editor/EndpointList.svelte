@@ -17,14 +17,16 @@
   let methodFilter = $state<string | null>(null);
 
   const METHOD_BADGE: Record<string, string> = {
-    GET:    'bg-emerald-500/10 text-emerald-400',
-    POST:   'bg-violet-500/10 text-violet-400',
-    PUT:    'bg-sky-500/10 text-sky-400',
-    DELETE: 'bg-rose-500/10 text-rose-400',
-    PATCH:  'bg-amber-500/10 text-amber-400',
+    GET:     'bg-emerald-500/10 text-emerald-400',
+    POST:    'bg-violet-500/10 text-violet-400',
+    PUT:     'bg-sky-500/10 text-sky-400',
+    DELETE:  'bg-rose-500/10 text-rose-400',
+    PATCH:   'bg-amber-500/10 text-amber-400',
+    HEAD:    'bg-teal-500/10 text-teal-400',
+    OPTIONS: 'bg-orange-500/10 text-orange-400',
   };
 
-  const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+  const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'];
 
   let filteredEndpoints = $derived(
     endpoints.filter(ep => {

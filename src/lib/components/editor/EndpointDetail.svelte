@@ -11,14 +11,16 @@
 
   let { endpoint, collectionId, onUpdate }: Props = $props();
 
-  const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'] as const;
+  const METHODS = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS'] as const;
 
   const METHOD_COLORS: Record<string, string> = {
-    GET:    'text-emerald-400',
-    POST:   'text-violet-400',
-    PUT:    'text-sky-400',
-    DELETE: 'text-rose-400',
-    PATCH:  'text-amber-400',
+    GET:     'text-emerald-400',
+    POST:    'text-violet-400',
+    PUT:     'text-sky-400',
+    DELETE:  'text-rose-400',
+    PATCH:   'text-amber-400',
+    HEAD:    'text-teal-400',
+    OPTIONS: 'text-orange-400',
   };
 
   let localScenarioId = $state<string | null>(null);
