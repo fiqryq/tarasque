@@ -20,6 +20,7 @@
       <EndpointList
         endpoints={$activeCollection.endpoints}
         activeId={$activeEndpointId}
+        collectionId={$activeCollection.id}
         onSelect={(id) => activeEndpointId.set(id)}
         onAdd={() => addEndpoint($activeCollection!.id)}
         onDelete={(id) => deleteEndpoint($activeCollection!.id, id)}

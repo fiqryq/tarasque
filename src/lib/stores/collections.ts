@@ -1,7 +1,72 @@
 import { writable, derived, get } from 'svelte/store';
 import { invoke } from '@tauri-apps/api/core';
 import type { Collection, Endpoint, AppData } from '$lib/types';
-import { newCollection, newEndpoint } from '$lib/types';
+import { newCollection, newEndpoint, newScenario } from '$lib/types';
+
+export interface CurlParsed {
+  method: string;
+  path: string;
+  headers: Record<string, string>;
+  body: string;
+}
+
+export function parseCurl(curlCommand: string): CurlParsed {
+  const result: CurlParsed = { method: 'GET', path: '/', headers: {}, body: '' };
+
+  // Extract first http(s):// URL
+  const urlMatch = curlCommand.match(/https?:\/\/[^\s'"]+/);
+  if (urlMatch) {
+    try {
+      const u = new URL(urlMatch[0]);
+      result.path = u.pathname + (u.search ?? '');
+    } catch { /* ignore */ }
+  }
+
+  // Method: -X POST or --request POST
+  const methodMatch = curlCommand.match(/(?:-X|--request)\s+([A-Z]+)/i);
+  if (methodMatch) result.method = methodMatch[1].toUpperCase();
+
+  // Headers: -H 'Key: Value' (multiple)
+  const headerRe = /(?:-H|--header)\s+(?:'([^']+)'|"([^"]+)")/g;
+  let hm: RegExpExecArray | null;
+  while ((hm = headerRe.exec(curlCommand)) !== null) {
+    const raw = hm[1] ?? hm[2];
+    const colon = raw.indexOf(':');
+    if (colon > 0) {
+      result.headers[raw.slice(0, colon).trim()] = raw.slice(colon + 1).trim();
+    }
+  }
+
+  // Body: -d or --data or --data-raw
+  const bodyMatch = curlCommand.match(/(?:-d|--data(?:-raw)?)\s+(?:'([^']+)'|"([^"]+)"|(\S+))/);
+  if (bodyMatch) {
+    result.body = bodyMatch[1] ?? bodyMatch[2] ?? bodyMatch[3] ?? '';
+    if (result.method === 'GET') result.method = 'POST';
+  }
+
+  return result;
+}
+
+export function addEndpointFromCurl(collectionId: string, parsed: CurlParsed) {
+  const scenario = newScenario({
+    headers: parsed.headers['Content-Type']
+      ? parsed.headers
+      : { 'Content-Type': 'application/json' },
+  });
+  const endpoint = newEndpoint({
+    method: (parsed.method as Endpoint['method']) || 'GET',
+    path: parsed.path,
+    scenarios: [scenario],
+    active_scenario_id: scenario.id,
+  });
+  collections.update((cols) =>
+    cols.map((c) =>
+      c.id === collectionId ? { ...c, endpoints: [...c.endpoints, endpoint] } : c
+    )
+  );
+  scheduleAutoSave();
+  return endpoint;
+}
 
 export const collections = writable<Collection[]>([]);
 export const activeCollectionId = writable<string | null>(null);

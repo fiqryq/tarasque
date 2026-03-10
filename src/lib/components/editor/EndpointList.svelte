@@ -1,17 +1,21 @@
 <script lang="ts">
-  import { Plus, Trash2, Search, X, Copy } from 'lucide-svelte';
+  import { Plus, Trash2, Search, X, Copy, Terminal } from 'lucide-svelte';
+  import CurlImportModal from './CurlImportModal.svelte';
   import type { Endpoint } from '$lib/types';
 
   interface Props {
     endpoints: Endpoint[];
     activeId: string | null;
+    collectionId: string;
     onSelect: (id: string) => void;
     onAdd: () => void;
     onDelete: (id: string) => void;
     onDuplicate: (id: string) => void;
   }
 
-  let { endpoints, activeId, onSelect, onAdd, onDelete, onDuplicate }: Props = $props();
+  let { endpoints, activeId, collectionId, onSelect, onAdd, onDelete, onDuplicate }: Props = $props();
+
+  let showCurlModal = $state(false);
 
   let searchQuery = $state('');
   let methodFilter = $state<string | null>(null);
@@ -81,14 +85,27 @@
   <!-- Header -->
   <div class="flex items-center justify-between px-3 h-9 border-b border-line shrink-0">
     <span class="font-krub text-[10px] font-semibold text-ink-muted uppercase tracking-widest">Endpoints</span>
-    <button
-      onclick={onAdd}
-      class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors duration-150"
-      title="Add endpoint"
-    >
-      <Plus size={12} />
-    </button>
+    <div class="flex items-center gap-0.5">
+      <button
+        onclick={() => showCurlModal = true}
+        class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors duration-150"
+        title="Import cURL"
+      >
+        <Terminal size={11} />
+      </button>
+      <button
+        onclick={onAdd}
+        class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors duration-150"
+        title="Add endpoint"
+      >
+        <Plus size={12} />
+      </button>
+    </div>
   </div>
+
+  {#if showCurlModal}
+    <CurlImportModal {collectionId} onclose={() => showCurlModal = false} />
+  {/if}
 
   <div class="flex-1 overflow-y-auto py-0.5">
     {#each filteredEndpoints as endpoint (endpoint.id)}
