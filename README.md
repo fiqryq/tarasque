@@ -1,5 +1,7 @@
 # Tarasque
 
+<img width="2719" height="1796" alt="CleanShot 2026-03-11 at 20 54 33@2x" src="https://github.com/user-attachments/assets/f5fbcc79-6f56-40e0-aba0-f2098accaa8e" />
+
 A desktop mock API server for designing, testing, and debugging HTTP endpoints. Built with Tauri v2, Rust, and Svelte 5.
 
 ## Features
