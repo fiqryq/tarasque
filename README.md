@@ -49,10 +49,6 @@ bun run tauri:dev
 bun run tauri:build
 ```
 
-Build output:
-- macOS: `src-tauri/target/release/bundle/macos/Tarasque.app`
-- DMG: `src-tauri/target/release/bundle/dmg/Tarasque_1.0.0_aarch64.dmg`
-
 ## Project Structure
 
 ```
@@ -71,7 +67,3 @@ src-tauri/              # Rust backend
     models.rs           # Data models
     storage.rs          # File persistence
 ```
-
-## License
-
-MIT
