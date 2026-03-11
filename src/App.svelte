@@ -11,12 +11,13 @@
   import SettingsModal from '$lib/components/SettingsModal.svelte';
   import CollectionSettingsModal from '$lib/components/CollectionSettingsModal.svelte';
   import CollectionEnvironmentModal from '$lib/components/CollectionEnvironmentModal.svelte';
+  import ConfirmModal from '$lib/components/ConfirmModal.svelte';
   import Toast from '$lib/components/Toast.svelte';
   import TestSuiteEditor from '$lib/components/editor/TestSuiteEditor.svelte';
   import TestSuites from '$lib/components/sidebar/TestSuites.svelte';
   import type { LogEntry, Collection } from '$lib/types';
   import { get } from 'svelte/store';
-  import { loadCollections, activeCollection, collections } from '$lib/stores/collections';
+  import { loadCollections, activeCollection, collections, deleteCollection } from '$lib/stores/collections';
   import { initLogListener, logs } from '$lib/stores/logs';
   import { syncRunningServers } from '$lib/stores/server';
   import { settings, applyTheme } from '$lib/stores/settings';
@@ -25,6 +26,8 @@
   let showSettings = $state(false);
   let settingsCollection = $state<Collection | null>(null);
   let environmentCollection = $state<Collection | null>(null);
+  let deleteCollectionId = $state<string | null>(null);
+  let deleteCollectionName = $state('');
   type NavView = 'collections' | 'running' | 'tests' | 'logs';
   let activeNav = $state<NavView>('collections');
 
@@ -160,6 +163,7 @@
           <Sidebar
             onOpenSettings={(c) => settingsCollection = c}
             onOpenEnvironments={(c) => environmentCollection = c}
+            onDelete={(id, name) => { deleteCollectionId = id; deleteCollectionName = name; }}
           />
         {:else if activeNav === 'running'}
           <RunningApis
@@ -268,6 +272,16 @@
   <CollectionEnvironmentModal
     collection={environmentCollection}
     onclose={() => environmentCollection = null}
+  />
+{/if}
+
+{#if deleteCollectionId}
+  <ConfirmModal
+    title="Delete Collection"
+    message={`Are you sure you want to delete "${deleteCollectionName}"? This will also delete all endpoints and scenarios. This action cannot be undone.`}
+    confirmLabel="Delete Collection"
+    onConfirm={() => { if (deleteCollectionId) { deleteCollection(deleteCollectionId); deleteCollectionId = null; deleteCollectionName = ''; } }}
+    onCancel={() => { deleteCollectionId = null; deleteCollectionName = ''; }}
   />
 {/if}
 

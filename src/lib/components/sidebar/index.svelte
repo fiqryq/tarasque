@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Plus, Upload, Download } from 'lucide-svelte';
   import CollectionItem from './CollectionItem.svelte';
-  import ConfirmModal from '$lib/components/ConfirmModal.svelte';
   import ImportExport from './ImportExport.svelte';
   import {
     collections,
@@ -16,14 +15,13 @@
   interface Props {
     onOpenSettings?: (collection: Collection) => void;
     onOpenEnvironments?: (collection: Collection) => void;
+    onDelete?: (id: string, name: string) => void;
   }
 
-  let { onOpenSettings, onOpenEnvironments }: Props = $props();
+  let { onOpenSettings, onOpenEnvironments, onDelete }: Props = $props();
 
   let newName = $state('');
   let creating = $state(false);
-  let deleteCollectionId = $state<string | null>(null);
-  let deleteCollectionName = $state('');
   let importExportRef: { triggerImport: () => void; triggerExport: () => void } | undefined;
 
   onMount(() => {
@@ -45,18 +43,6 @@
     if (e.key === 'Escape') { creating = false; newName = ''; }
   }
 
-  function confirmDeleteCollection(id: string, name: string) {
-    deleteCollectionId = id;
-    deleteCollectionName = name;
-  }
-
-  function executeDelete() {
-    if (deleteCollectionId) {
-      deleteCollection(deleteCollectionId);
-      deleteCollectionId = null;
-      deleteCollectionName = '';
-    }
-  }
 </script>
 
 <div class="flex flex-col h-full">
@@ -119,7 +105,7 @@
         {collection}
         active={$activeCollectionId === collection.id}
         onSelect={() => activeCollectionId.set(collection.id)}
-        onDelete={() => confirmDeleteCollection(collection.id, collection.name)}
+        onDelete={() => onDelete?.(collection.id, collection.name)}
         onSettings={() => onOpenSettings?.(collection)}
         onEnvironments={() => onOpenEnvironments?.(collection)}
       />
@@ -164,12 +150,3 @@
   </div>
 </div>
 
-{#if deleteCollectionId}
-  <ConfirmModal
-    title="Delete Collection"
-    message={`Are you sure you want to delete "${deleteCollectionName}"? This will also delete all endpoints and scenarios. This action cannot be undone.`}
-    confirmLabel="Delete Collection"
-    onConfirm={executeDelete}
-    onCancel={() => { deleteCollectionId = null; deleteCollectionName = ''; }}
-  />
-{/if}

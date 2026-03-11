@@ -11,12 +11,37 @@
     duplicateEndpoint,
     updateEndpoint,
   } from '$lib/stores/collections';
+
+  let listWidth = $state(224);
+  let isResizing = $state(false);
+  const LIST_MIN = 160;
+  const LIST_MAX = 400;
+
+  function startResize(e: MouseEvent) {
+    e.preventDefault();
+    isResizing = true;
+    const startX = e.clientX;
+    const startWidth = listWidth;
+
+    function onMouseMove(e: MouseEvent) {
+      listWidth = Math.max(LIST_MIN, Math.min(LIST_MAX, startWidth + (e.clientX - startX)));
+    }
+
+    function onMouseUp() {
+      isResizing = false;
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    }
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }
 </script>
 
 {#if $activeCollection}
-  <div class="flex h-full">
+  <div class="flex h-full {isResizing ? 'select-none cursor-col-resize' : ''}">
     <!-- Left: endpoint list -->
-    <div class="w-56 shrink-0">
+    <div class="shrink-0 relative" style="width: {listWidth}px;">
       <EndpointList
         endpoints={$activeCollection.endpoints}
         activeId={$activeEndpointId}
@@ -26,6 +51,15 @@
         onDelete={(id) => deleteEndpoint($activeCollection!.id, id)}
         onDuplicate={(id) => duplicateEndpoint($activeCollection!.id, id)}
       />
+      <!-- Resize handle -->
+      <div
+        class="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-accent/30 transition-colors z-10
+               {isResizing ? 'bg-accent/40' : ''}"
+        onmousedown={startResize}
+        role="separator"
+        aria-orientation="vertical"
+        tabindex="-1"
+      ></div>
     </div>
 
     <!-- Right: endpoint detail -->
