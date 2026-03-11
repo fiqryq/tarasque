@@ -88,7 +88,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between px-4 py-3 border-b border-line shrink-0">
       <span class="text-sm font-krub text-ink">Environments — {collection.name}</span>
-      <button onclick={onclose} class="text-ink-dim hover:text-ink transition-colors">
+      <button onclick={onclose} class="text-ink-dim hover:text-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded" aria-label="Close">
         <X size={14} />
       </button>
     </div>
@@ -114,7 +114,8 @@
               <span class="flex-1 text-xs truncate">{env.name}</span>
               <button
                 onclick={(e) => { e.stopPropagation(); deleteEnv(env.id); }}
-                class="opacity-0 group-hover:opacity-100 text-ink-dim hover:text-err shrink-0"
+                class="opacity-0 group-hover:opacity-100 text-ink-dim hover:text-err shrink-0 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-err rounded"
+                aria-label="Delete environment"
               >
                 <Trash2 size={9} />
               </button>
@@ -139,6 +140,7 @@
             <input
               value={selectedEnv.name}
               onchange={(e) => renameEnv(selectedEnv!.id, (e.target as HTMLInputElement).value)}
+              aria-label="Environment name"
               class="flex-1 bg-app border border-line rounded px-2 py-1 text-sm text-ink focus:outline-none focus:border-accent"
             />
             <button
@@ -168,7 +170,7 @@
                   placeholder="value"
                   class="flex-1 bg-app border border-line rounded px-2 py-1 text-xs font-mono text-ink-muted focus:outline-none focus:border-accent min-w-0"
                 />
-                <button onclick={() => deleteVar(key)} class="text-ink-dim hover:text-err shrink-0">
+                <button onclick={() => deleteVar(key)} class="text-ink-dim hover:text-err shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-err rounded" aria-label="Delete variable">
                   <Trash2 size={10} />
                 </button>
               </div>

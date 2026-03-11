@@ -1,35 +1,44 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Database, Activity, Settings, FlaskConical } from 'lucide-svelte';
+  import { Database, Activity, Settings, FlaskConical, ScrollText } from 'lucide-svelte';
   import Sidebar from '$lib/components/sidebar/index.svelte';
   import RunningApis from '$lib/components/sidebar/RunningApis.svelte';
+  import LogsSidebar from '$lib/components/sidebar/LogsSidebar.svelte';
   import Editor from '$lib/components/editor/index.svelte';
   import SwaggerView from '$lib/components/SwaggerView.svelte';
+  import LogDetailView from '$lib/components/LogDetailView.svelte';
   import ServerPanel from '$lib/components/server/ServerPanel.svelte';
-  import LogPanel from '$lib/components/server/LogPanel.svelte';
   import SettingsModal from '$lib/components/SettingsModal.svelte';
   import Toast from '$lib/components/Toast.svelte';
   import TestSuiteEditor from '$lib/components/editor/TestSuiteEditor.svelte';
   import TestSuites from '$lib/components/sidebar/TestSuites.svelte';
+  import type { LogEntry } from '$lib/types';
   import { get } from 'svelte/store';
   import { loadCollections, activeCollection, collections } from '$lib/stores/collections';
-  import { initLogListener } from '$lib/stores/logs';
+  import { initLogListener, logs } from '$lib/stores/logs';
   import { syncRunningServers } from '$lib/stores/server';
-  import { logPanel } from '$lib/stores/logPanel';
   import { settings, applyTheme } from '$lib/stores/settings';
   import { testSuites, loadTestSuites } from '$lib/stores/testSuites';
 
   let showSettings = $state(false);
-  type NavView = 'collections' | 'running' | 'tests';
+  type NavView = 'collections' | 'running' | 'tests' | 'logs';
   let activeNav = $state<NavView>('collections');
   let activeRunningCollectionId = $state<string | null>(null);
   let activeSuiteId = $state<string | null>(null);
+  let selectedLog = $state<LogEntry | null>(null);
 
   let activeSuite = $derived($testSuites.find((s) => s.id === activeSuiteId) ?? null);
 
   let selectedRunningCollection = $derived(
     activeRunningCollectionId ? $collections.find(c => c.id === activeRunningCollectionId) ?? null : null
   );
+
+  const navItems: { key: NavView; icon: typeof Database; label: string }[] = [
+    { key: 'collections', icon: Database, label: 'Collections' },
+    { key: 'running', icon: Activity, label: 'Running' },
+    { key: 'tests', icon: FlaskConical, label: 'Tests' },
+    { key: 'logs', icon: ScrollText, label: 'Logs' },
+  ];
 
   function handleKeydown(e: KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key === ',') {
@@ -38,7 +47,7 @@
     }
     if ((e.metaKey || e.ctrlKey) && e.key === 'l') {
       e.preventDefault();
-      logPanel.toggle();
+      activeNav = 'logs';
     }
   }
 
@@ -54,58 +63,58 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<div class="h-screen bg-app text-ink flex flex-col overflow-hidden font-inter">
+<div class="h-screen bg-app text-ink flex flex-col overflow-hidden font-sf">
+  <!-- Titlebar drag region (macOS traffic lights) -->
+  <div data-tauri-drag-region class="h-toolbar shrink-0 flex items-end" style="-webkit-app-region: drag;">
+    <!-- Empty drag area — traffic lights sit here natively -->
+  </div>
+
   <div class="flex-1 flex overflow-hidden">
     <!-- Icon nav strip -->
-    <div class="w-10 shrink-0 bg-app flex flex-col items-center border-r border-line">
-      <div class="w-10 h-11 flex items-center justify-center border-b border-line shrink-0">
-        <span class="font-krub font-bold text-sm text-accent">T</span>
+    <div class="w-[52px] shrink-0 glass border-r border-line flex flex-col items-center">
+      <div class="flex-1 flex flex-col items-center pt-2 gap-1">
+        {#each navItems as { key, icon: Icon, label }}
+          <button
+            onclick={() => activeNav = key}
+            class="w-9 h-9 flex flex-col items-center justify-center rounded-hig-sm transition-all duration-200 relative group
+                   {activeNav === key
+                     ? 'bg-accent/12 text-accent'
+                     : 'text-ink-tertiary hover:text-ink-secondary hover:bg-[var(--color-hover)]'}"
+            title={label}
+          >
+            <Icon size={18} />
+            {#if key === 'logs' && $logs.length > 0 && activeNav !== 'logs'}
+              <span class="absolute top-1.5 right-1.5 w-[6px] h-[6px] rounded-full bg-accent"></span>
+            {/if}
+          </button>
+        {/each}
       </div>
-      <div class="flex-1 flex flex-col items-center pt-2 gap-0.5">
-        <button
-          onclick={() => activeNav = 'collections'}
-          class="w-8 h-8 flex items-center justify-center rounded transition-colors duration-150
-                 {activeNav === 'collections' ? 'text-accent bg-accent/10' : 'text-ink-dim hover:text-ink hover:bg-hover'}"
-          title="Collections"
-        >
-          <Database size={14} />
-        </button>
-        <button
-          onclick={() => activeNav = 'running'}
-          class="w-8 h-8 flex items-center justify-center rounded transition-colors duration-150
-                 {activeNav === 'running' ? 'text-run bg-run/10' : 'text-ink-dim hover:text-ink hover:bg-hover'}"
-          title="Running APIs"
-        >
-          <Activity size={14} />
-        </button>
-        <button
-          onclick={() => activeNav = 'tests'}
-          class="w-8 h-8 flex items-center justify-center rounded transition-colors duration-150
-                 {activeNav === 'tests' ? 'text-accent bg-accent/10' : 'text-ink-dim hover:text-ink hover:bg-hover'}"
-          title="Test Suites"
-        >
-          <FlaskConical size={14} />
-        </button>
-      </div>
-      <div class="pb-3">
+
+      <div class="pb-4">
         <button
           onclick={() => showSettings = true}
-          class="w-8 h-8 flex items-center justify-center rounded text-ink-dim hover:text-ink-muted transition-colors duration-150"
+          class="w-9 h-9 flex items-center justify-center rounded-hig-sm text-ink-tertiary
+                 hover:text-ink-secondary hover:bg-[var(--color-hover)] transition-all duration-200"
           title="Settings"
         >
-          <Settings size={13} />
+          <Settings size={18} />
         </button>
       </div>
     </div>
 
-    <!-- Sidebar panel (switches based on activeNav) -->
-    <div class="w-56 shrink-0 flex flex-col bg-surface border-r border-line">
+    <!-- Sidebar panel -->
+    <div class="w-60 shrink-0 flex flex-col glass border-r border-line">
       {#if activeNav === 'collections'}
         <Sidebar />
       {:else if activeNav === 'running'}
         <RunningApis
           selectedId={activeRunningCollectionId}
           onSelect={(id) => activeRunningCollectionId = id}
+        />
+      {:else if activeNav === 'logs'}
+        <LogsSidebar
+          {selectedLog}
+          onSelect={(log) => selectedLog = log}
         />
       {:else}
         <TestSuites
@@ -115,55 +124,64 @@
       {/if}
     </div>
 
-    <!-- Main -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <!-- Top bar -->
-      <div class="shrink-0 h-11 px-4 flex items-center border-b border-line">
-        <ServerPanel />
-      </div>
+    <!-- Main content -->
+    <div class="flex-1 flex flex-col min-w-0 bg-app">
+      <!-- Toolbar (collections only) -->
+      {#if activeNav === 'collections'}
+        <div class="shrink-0 h-toolbar px-4 flex items-center border-b border-line">
+          <ServerPanel />
+        </div>
+      {/if}
 
-      <!-- Editor / Swagger view / Test suite editor -->
+      <!-- Content area -->
       <div class="flex-1 min-h-0">
         {#if activeNav === 'running'}
           {#if selectedRunningCollection}
             <SwaggerView collection={selectedRunningCollection} />
           {:else}
-            <div class="flex flex-col items-center justify-center h-full gap-2 text-center">
-              <div class="w-10 h-10 rounded-xl bg-surface flex items-center justify-center mb-1">
-                <Activity size={18} class="text-ink-dim" />
+            <div class="flex flex-col items-center justify-center h-full gap-3 text-center">
+              <div class="w-12 h-12 rounded-hig bg-surface flex items-center justify-center">
+                <Activity size={24} class="text-ink-tertiary" />
               </div>
-              <span class="font-krub text-sm text-ink-muted">Select a running API</span>
-              <span class="text-xs text-ink-dim">Click a collection in the sidebar to view its docs</span>
+              <span class="text-title text-ink-secondary">No Running APIs</span>
+              <span class="text-body text-ink-tertiary">Start a server from Collections to see its docs here</span>
+            </div>
+          {/if}
+        {:else if activeNav === 'logs'}
+          {#if selectedLog}
+            <LogDetailView log={selectedLog} />
+          {:else}
+            <div class="flex flex-col items-center justify-center h-full gap-3 text-center">
+              <div class="w-12 h-12 rounded-hig bg-surface flex items-center justify-center">
+                <ScrollText size={24} class="text-ink-tertiary" />
+              </div>
+              <span class="text-title text-ink-secondary">No Log Selected</span>
+              <span class="text-body text-ink-tertiary">Select a request from the sidebar to inspect it</span>
             </div>
           {/if}
         {:else if activeNav === 'tests'}
           {#if activeSuite}
             <TestSuiteEditor suite={activeSuite} />
           {:else}
-            <div class="flex flex-col items-center justify-center h-full gap-2 text-center">
-              <div class="w-10 h-10 rounded-xl bg-surface flex items-center justify-center mb-1">
-                <FlaskConical size={18} class="text-ink-dim" />
+            <div class="flex flex-col items-center justify-center h-full gap-3 text-center">
+              <div class="w-12 h-12 rounded-hig bg-surface flex items-center justify-center">
+                <FlaskConical size={24} class="text-ink-tertiary" />
               </div>
-              <span class="font-krub text-sm text-ink-muted">No test suite selected</span>
-              <span class="text-xs text-ink-dim">Create a suite in the sidebar</span>
+              <span class="text-title text-ink-secondary">No Test Suite Selected</span>
+              <span class="text-body text-ink-tertiary">Create or select one from the sidebar</span>
             </div>
           {/if}
         {:else if $activeCollection}
           <Editor />
         {:else}
-          <div class="flex flex-col items-center justify-center h-full gap-2 text-center">
-            <div class="w-10 h-10 rounded-xl bg-surface flex items-center justify-center mb-1">
-              <Database size={18} class="text-ink-dim" />
+          <div class="flex flex-col items-center justify-center h-full gap-3 text-center">
+            <div class="w-12 h-12 rounded-hig bg-surface flex items-center justify-center">
+              <Database size={24} class="text-ink-tertiary" />
             </div>
-            <span class="font-krub text-sm text-ink-muted">No collection selected</span>
-            <span class="text-xs text-ink-dim">Create or select one from the sidebar</span>
+            <span class="text-title text-ink-secondary">No Collection Selected</span>
+            <span class="text-body text-ink-tertiary">Select one from the sidebar or create a new one</span>
           </div>
         {/if}
-      </div>
-
-      <!-- Log panel -->
-      <div class="shrink-0 border-t border-line" style="height: {$logPanel.collapsed ? 'auto' : $logPanel.height + 'px'}">
-        <LogPanel />
       </div>
     </div>
   </div>

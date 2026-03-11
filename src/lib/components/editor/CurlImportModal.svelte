@@ -44,7 +44,7 @@
   >
     <div class="flex items-center justify-between px-4 py-3 border-b border-line">
       <span class="text-sm font-krub text-ink">Import cURL</span>
-      <button onclick={onclose} class="text-ink-dim hover:text-ink transition-colors">
+      <button onclick={onclose} class="text-ink-dim hover:text-ink transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded" aria-label="Close">
         <X size={14} />
       </button>
     </div>
@@ -53,6 +53,7 @@
       <textarea
         bind:value={curlText}
         placeholder={'curl -X POST https://api.example.com/users \n  -H \'Content-Type: application/json\' \n  -d \'{"name": "John"}\''}
+        aria-label="cURL command"
         class="w-full h-32 px-3 py-2 bg-app border border-line rounded text-xs text-ink font-mono
                placeholder:text-ink-dim/50 resize-none focus:outline-none focus:border-accent transition-colors"
       ></textarea>
@@ -70,9 +71,9 @@
         </button>
         <button
           onclick={handleImport}
-          class="px-4 py-1.5 text-xs font-krub bg-accent text-white rounded hover:opacity-90 transition-opacity"
+          class="px-4 py-1.5 text-xs font-krub bg-accent text-white rounded hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
-          Import
+          Import cURL
         </button>
       </div>
     </div>

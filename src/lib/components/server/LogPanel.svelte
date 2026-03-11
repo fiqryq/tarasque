@@ -127,8 +127,9 @@
     <button
       onclick={clearLogs}
       class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink-muted
-             hover:bg-hover transition-colors duration-150"
+             hover:bg-hover transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       title="Clear logs"
+      aria-label="Clear logs"
     >
       <Trash2 size={10} />
     </button>
@@ -185,8 +186,9 @@
           <button
             onclick={clearLogs}
             class="w-5 h-5 flex items-center justify-center rounded text-ink-dim hover:text-ink-muted
-                   hover:bg-hover transition-colors duration-150"
+                   hover:bg-hover transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             title="Clear logs"
+            aria-label="Clear logs"
           >
             <Trash2 size={10} />
           </button>

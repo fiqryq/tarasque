@@ -19,65 +19,70 @@
 </script>
 
 <button
-  class="w-full text-left px-3 py-2 flex items-center gap-2 group transition-colors duration-150 border-l-[2px]
+  class="w-full text-left px-4 py-2.5 flex items-center gap-3 group transition-all duration-200 rounded-hig-sm mx-1
     {active
-      ? 'border-accent bg-hover text-ink'
-      : 'border-transparent hover:bg-hover/60 text-ink-muted hover:text-ink'}"
+      ? 'bg-accent/12 text-ink'
+      : 'hover:bg-[var(--color-hover)] text-ink-secondary hover:text-ink'}"
+  style="width: calc(100% - 8px);"
   onclick={onSelect}
 >
   {#if active}
-    <FolderOpen size={13} class="shrink-0 text-accent" />
+    <FolderOpen size={16} class="shrink-0 text-accent" />
   {:else}
-    <Folder size={13} class="shrink-0 text-ink-dim group-hover:text-ink-muted transition-colors duration-150" />
+    <Folder size={16} class="shrink-0 text-ink-tertiary group-hover:text-ink-secondary transition-colors" />
   {/if}
 
-  <span class="flex-1 truncate text-xs font-inter">{collection.name}</span>
+  <span class="flex-1 truncate text-body">{collection.name}</span>
 
-  <!-- Running / starting indicator -->
   {#if running}
-    <span class="w-1.5 h-1.5 rounded-full bg-run animate-pulse shrink-0" title="Server running"></span>
+    <span class="w-2 h-2 rounded-full bg-run animate-pulse shrink-0" title="Server running"></span>
   {:else if starting}
-    <span class="w-1.5 h-1.5 rounded-full bg-warn animate-pulse shrink-0" title="Starting…"></span>
+    <span class="w-2 h-2 rounded-full bg-warn animate-pulse shrink-0" title="Starting..."></span>
   {/if}
 
-  <span class="text-[9px] font-mono text-ink-dim tabular-nums px-1.5 py-0.5 rounded bg-surface shrink-0">
+  <span class="text-caption font-mono text-ink-tertiary tabular-nums shrink-0">
     :{collection.port}
   </span>
 
   {#if collection.proxy_enabled}
-    <span class="text-[9px] font-mono text-amber-400 shrink-0" title="Proxy enabled">↗</span>
+    <span class="text-caption font-mono text-warn shrink-0" title="Proxy enabled">↗</span>
   {/if}
 
-  <div
-    role="button"
-    tabindex="0"
-    class="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded
-           text-ink-dim hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-150 shrink-0"
-    onclick={(e) => { e.stopPropagation(); onEnvironments(); }}
-    onkeydown={(e) => e.key === 'Enter' && onEnvironments()}
-    title="Environments"
-  >
-    <Leaf size={10} />
-  </div>
-  <div
-    role="button"
-    tabindex="0"
-    class="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded
-           text-ink-dim hover:text-ink hover:bg-hover transition-all duration-150 shrink-0"
-    onclick={(e) => { e.stopPropagation(); onSettings(); }}
-    onkeydown={(e) => e.key === 'Enter' && onSettings()}
-  >
-    <Settings size={10} />
-  </div>
-
-  <div
-    role="button"
-    tabindex="0"
-    class="opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded
-           text-ink-dim hover:text-err hover:bg-err/10 transition-all duration-150 shrink-0"
-    onclick={(e) => { e.stopPropagation(); onDelete(); }}
-    onkeydown={(e) => e.key === 'Enter' && onDelete()}
-  >
-    <Trash2 size={10} />
+  <!-- Actions (hover reveal) -->
+  <div class="opacity-0 group-hover:opacity-100 flex items-center gap-0.5 shrink-0 transition-opacity duration-150" style="-webkit-app-region: no-drag;">
+    <div
+      role="button"
+      tabindex="0"
+      class="w-6 h-6 flex items-center justify-center rounded-md
+             text-ink-tertiary hover:text-run hover:bg-run/10 transition-colors"
+      onclick={(e) => { e.stopPropagation(); onEnvironments(); }}
+      onkeydown={(e) => e.key === 'Enter' && onEnvironments()}
+      title="Environments"
+      aria-label="Edit environments"
+    >
+      <Leaf size={12} />
+    </div>
+    <div
+      role="button"
+      tabindex="0"
+      class="w-6 h-6 flex items-center justify-center rounded-md
+             text-ink-tertiary hover:text-ink hover:bg-[var(--color-hover)] transition-colors"
+      onclick={(e) => { e.stopPropagation(); onSettings(); }}
+      onkeydown={(e) => e.key === 'Enter' && onSettings()}
+      aria-label="Collection settings"
+    >
+      <Settings size={12} />
+    </div>
+    <div
+      role="button"
+      tabindex="0"
+      class="w-6 h-6 flex items-center justify-center rounded-md
+             text-ink-tertiary hover:text-err hover:bg-err/10 transition-colors"
+      onclick={(e) => { e.stopPropagation(); onDelete(); }}
+      onkeydown={(e) => e.key === 'Enter' && onDelete()}
+      aria-label="Delete collection"
+    >
+      <Trash2 size={12} />
+    </div>
   </div>
 </button>

@@ -12,10 +12,15 @@
     "windows": [
       {
         "title": "Tarasque",
-        "width": 1400,
+        "width": 1200,
         "height": 900,
+        "minWidth": 800,
+        "minHeight": 600,
         "resizable": true,
-        "center": true
+        "center": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
+        "transparent": true
       }
     ],
     "security": {

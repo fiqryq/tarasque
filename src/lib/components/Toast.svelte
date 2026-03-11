@@ -9,25 +9,25 @@
   };
 
   const STYLES: Record<Toast['type'], string> = {
-    success: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
-    error: 'border-rose-500/30 bg-rose-500/10 text-rose-400',
-    info: 'border-blue-500/30 bg-blue-500/10 text-blue-400',
+    success: 'text-run',
+    error: 'text-err',
+    info: 'text-accent',
   };
 </script>
 
-<div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+<div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2" aria-live="polite" aria-label="Notifications">
   {#each $toasts as toast (toast.id)}
     {@const Icon = ICONS[toast.type]}
-    <div
-      class="flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg {STYLES[toast.type]} max-w-sm"
-    >
-      <Icon size={16} />
-      <span class="text-sm text-ink flex-1">{toast.message}</span>
+    <div class="glass-card flex items-center gap-3 px-4 py-3 shadow-hig-dark max-w-sm">
+      <Icon size={16} class={STYLES[toast.type]} />
+      <span class="text-body text-ink flex-1">{toast.message}</span>
       <button
         onclick={() => toasts.dismiss(toast.id)}
-        class="text-ink-dim hover:text-ink"
+        class="w-5 h-5 flex items-center justify-center rounded-full text-ink-tertiary
+               hover:text-ink hover:bg-[var(--color-hover)] transition-colors"
+        aria-label="Dismiss notification"
       >
-        <X size={14} />
+        <X size={12} />
       </button>
     </div>
   {/each}

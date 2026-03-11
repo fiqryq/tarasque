@@ -292,6 +292,7 @@
             if (!isNaN(gi) && !isNaN(ti)) applyTemplate(RESPONSE_TEMPLATES[gi].items[ti]);
             e.currentTarget.value = '';
           }}
+          aria-label="Load response template"
           class="h-6 text-[10px] font-krub bg-surface text-ink-muted border border-line-strong rounded
                  px-2 focus:outline-none focus:border-accent cursor-pointer hover:border-accent
                  transition-colors duration-150"
@@ -345,7 +346,7 @@
           <span class="flex-1 text-[9px] font-krub text-ink-dim uppercase tracking-wider">Example value</span>
           <div class="w-6 shrink-0"></div>
         </div>
-        <div class="flex-1 overflow-y-auto">
+        <div class="flex-1 overflow-y-auto" role="list" aria-label="Query parameters">
           {#each Object.entries(queryParams) as [key, val] (key)}
             <div class="flex items-center px-4 border-b border-line/30 group hover:bg-hover/20">
               <div class="w-5 shrink-0 flex items-center">
@@ -368,7 +369,9 @@
               <button
                 onclick={() => removeParam(key)}
                 class="w-6 h-6 flex items-center justify-center text-ink-dim opacity-0
-                       group-hover:opacity-100 hover:text-err rounded transition-all duration-100 shrink-0"
+                       group-hover:opacity-100 hover:text-err rounded transition-all duration-100 shrink-0
+                       focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-err"
+                aria-label="Remove parameter"
               ><X size={11} /></button>
             </div>
           {/each}
@@ -417,7 +420,7 @@
           <span class="flex-1 text-[9px] font-krub text-ink-dim uppercase tracking-wider">Value</span>
           <div class="w-6 shrink-0"></div>
         </div>
-        <div class="flex-1 overflow-y-auto">
+        <div class="flex-1 overflow-y-auto" role="list" aria-label="Response headers">
           {#each Object.entries(scenario.headers) as [key, val] (key)}
             <div class="flex items-center px-4 border-b border-line/30 group hover:bg-hover/20">
               <div class="w-5 shrink-0 flex items-center">
@@ -440,7 +443,9 @@
               <button
                 onclick={() => removeHeader(key)}
                 class="w-6 h-6 flex items-center justify-center text-ink-dim opacity-0
-                       group-hover:opacity-100 hover:text-err rounded transition-all duration-100 shrink-0"
+                       group-hover:opacity-100 hover:text-err rounded transition-all duration-100 shrink-0
+                       focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-err"
+                aria-label="Remove header"
               ><X size={11} /></button>
             </div>
           {/each}

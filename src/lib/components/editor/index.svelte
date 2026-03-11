@@ -38,8 +38,8 @@
         />
       {:else}
         <div class="flex flex-col items-center justify-center h-full gap-1.5">
-          <span class="text-sm text-ink-muted font-krub">Select an endpoint</span>
-          <span class="text-xs text-ink-dim">or create one with +</span>
+          <span class="text-sm text-ink-secondary font-sf">No endpoint selected</span>
+          <span class="text-xs text-ink-tertiary">Select one from the list or press + to create</span>
         </div>
       {/if}
     </div>

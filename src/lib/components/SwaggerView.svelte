@@ -1,8 +1,42 @@
 <script lang="ts">
-  import { Copy, ChevronDown, ChevronRight, ExternalLink, Upload } from 'lucide-svelte';
+  import { Copy, ChevronDown, ChevronRight, ExternalLink, Upload, Check } from 'lucide-svelte';
   import type { Collection, Endpoint } from '$lib/types';
   import { addEndpointsFromOpenApi } from '$lib/stores/collections';
   import { toasts } from '$lib/stores/toasts';
+  import { createHighlighter, type Highlighter } from 'shiki';
+
+  let highlighter = $state<Highlighter | null>(null);
+  const highlightCache = $state<Record<string, string>>({});
+
+  async function initHighlighter() {
+    highlighter = await createHighlighter({
+      themes: ['vitesse-dark'],
+      langs: ['bash', 'javascript', 'python', 'go', 'php', 'rust'],
+    });
+  }
+
+  initHighlighter();
+
+  const LANG_MAP: Record<Lang, string> = {
+    curl: 'bash',
+    javascript: 'javascript',
+    python: 'python',
+    go: 'go',
+    php: 'php',
+    rust: 'rust',
+  };
+
+  function highlight(code: string, lang: Lang): string {
+    const cacheKey = `${lang}:${code}`;
+    if (highlightCache[cacheKey]) return highlightCache[cacheKey];
+    if (!highlighter) return '';
+    const html = highlighter.codeToHtml(code, {
+      lang: LANG_MAP[lang],
+      theme: 'vitesse-dark',
+    });
+    highlightCache[cacheKey] = html;
+    return html;
+  }
 
   interface Props {
     collection: Collection;
@@ -91,6 +125,103 @@
   function toggleGroup(tag: string) {
     expandedGroups[tag] = !isGroupExpanded(tag);
   }
+
+  // Code snippets
+  type Lang = 'curl' | 'javascript' | 'python' | 'go' | 'php' | 'rust';
+  const LANGS: { key: Lang; label: string }[] = [
+    { key: 'curl', label: 'cURL' },
+    { key: 'javascript', label: 'JavaScript' },
+    { key: 'python', label: 'Python' },
+    { key: 'go', label: 'Go' },
+    { key: 'php', label: 'PHP' },
+    { key: 'rust', label: 'Rust' },
+  ];
+
+  let snippetLang = $state<Record<string, Lang>>({});
+  let copiedSnippet = $state<string | null>(null);
+
+  function getLang(id: string): Lang {
+    return snippetLang[id] ?? 'curl';
+  }
+
+  function generateSnippet(endpoint: Endpoint, lang: Lang): string {
+    const url = `${baseUrl}${endpoint.path}`;
+    const method = endpoint.method;
+    const hasBody = ['POST', 'PUT', 'PATCH'].includes(method);
+    const scenario = endpoint.scenarios.find(s => s.id === endpoint.active_scenario_id) ?? endpoint.scenarios[0];
+    const bodyExample = hasBody && scenario?.body?.trim() ? scenario.body.trim() : null;
+
+    switch (lang) {
+      case 'curl': {
+        let cmd = `curl -X ${method} "${url}"`;
+        if (hasBody) cmd += ` \\\n  -H "Content-Type: application/json"`;
+        if (bodyExample) cmd += ` \\\n  -d '${bodyExample}'`;
+        return cmd;
+      }
+      case 'javascript': {
+        if (method === 'GET') return `const res = await fetch("${url}");\nconst data = await res.json();`;
+        let code = `const res = await fetch("${url}", {\n  method: "${method}",`;
+        if (hasBody) {
+          code += `\n  headers: { "Content-Type": "application/json" },`;
+          if (bodyExample) code += `\n  body: JSON.stringify(${bodyExample}),`;
+        }
+        code += `\n});\nconst data = await res.json();`;
+        return code;
+      }
+      case 'python': {
+        let code = `import requests\n\n`;
+        if (method === 'GET') {
+          code += `res = requests.get("${url}")\ndata = res.json()`;
+        } else {
+          code += `res = requests.${method.toLowerCase()}(\n    "${url}",`;
+          if (bodyExample) code += `\n    json=${bodyExample},`;
+          code += `\n)\ndata = res.json()`;
+        }
+        return code;
+      }
+      case 'go': {
+        let code = `package main\n\nimport (\n    "fmt"\n    "net/http"\n    "io"\n`;
+        if (hasBody) code += `    "bytes"\n`;
+        code += `)\n\nfunc main() {\n`;
+        if (hasBody && bodyExample) {
+          code += `    body := bytes.NewBufferString(\`${bodyExample}\`)\n`;
+          code += `    req, _ := http.NewRequest("${method}", "${url}", body)\n`;
+          code += `    req.Header.Set("Content-Type", "application/json")\n`;
+        } else {
+          code += `    req, _ := http.NewRequest("${method}", "${url}", nil)\n`;
+        }
+        code += `    res, _ := http.DefaultClient.Do(req)\n    defer res.Body.Close()\n    data, _ := io.ReadAll(res.Body)\n    fmt.Println(string(data))\n}`;
+        return code;
+      }
+      case 'php': {
+        let code = `$ch = curl_init("${url}");\ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n`;
+        if (method !== 'GET') {
+          code += `curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "${method}");\n`;
+          if (hasBody) {
+            code += `curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json"]);\n`;
+            if (bodyExample) code += `curl_setopt($ch, CURLOPT_POSTFIELDS, '${bodyExample}');\n`;
+          }
+        }
+        code += `$response = curl_exec($ch);\ncurl_close($ch);\n$data = json_decode($response, true);`;
+        return code;
+      }
+      case 'rust': {
+        let code = `// reqwest with tokio\nlet client = reqwest::Client::new();\nlet res = client\n    .${method.toLowerCase()}("${url}")`;
+        if (hasBody) {
+          code += `\n    .header("Content-Type", "application/json")`;
+          if (bodyExample) code += `\n    .body(r#"${bodyExample}"#)`;
+        }
+        code += `\n    .send()\n    .await?;\nlet body = res.text().await?;`;
+        return code;
+      }
+    }
+  }
+
+  function copySnippet(id: string, code: string) {
+    navigator.clipboard.writeText(code);
+    copiedSnippet = id;
+    setTimeout(() => { if (copiedSnippet === id) copiedSnippet = null; }, 1500);
+  }
 </script>
 
 <input
@@ -102,7 +233,7 @@
 />
 
 <div class="h-full overflow-y-auto bg-app">
-  <div class="max-w-3xl mx-auto px-6 py-6 space-y-6">
+  <div class="w-full px-6 py-6 space-y-6">
 
     <!-- API Header -->
     <div class="border border-line rounded-xl p-5 bg-surface">
@@ -295,6 +426,49 @@
                         </div>
                       </div>
 
+                      <!-- Code snippets -->
+                      <div>
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-[9px] font-krub text-ink-dim uppercase tracking-widest">Code Examples</span>
+                          <button
+                            onclick={() => copySnippet(endpoint.id, generateSnippet(endpoint, getLang(endpoint.id)))}
+                            class="flex items-center gap-1 text-[9px] font-krub text-ink-dim hover:text-ink transition-colors"
+                          >
+                            {#if copiedSnippet === endpoint.id}
+                              <Check size={10} class="text-run" />
+                              <span class="text-run">Copied</span>
+                            {:else}
+                              <Copy size={10} />
+                              Copy
+                            {/if}
+                          </button>
+                        </div>
+                        <div class="border border-line rounded-lg overflow-hidden">
+                          <div class="flex items-center gap-0.5 px-2 py-1.5 bg-surface/80 border-b border-line/50 overflow-x-auto">
+                            {#each LANGS as { key, label }}
+                              <button
+                                onclick={() => snippetLang[endpoint.id] = key}
+                                class="px-2 py-0.5 text-[9px] font-mono rounded transition-colors shrink-0
+                                  {getLang(endpoint.id) === key
+                                    ? 'bg-accent/15 text-accent'
+                                    : 'text-ink-dim hover:text-ink hover:bg-hover/50'}"
+                              >
+                                {label}
+                              </button>
+                            {/each}
+                          </div>
+                          {#if highlighter}
+                            <div class="snippet-highlight px-3 py-3 text-[11px] leading-relaxed max-h-64 overflow-y-auto">
+                              {@html highlight(generateSnippet(endpoint, getLang(endpoint.id)), getLang(endpoint.id))}
+                            </div>
+                          {:else}
+                            <pre class="px-3 py-3 text-[11px] font-mono text-ink-muted leading-relaxed
+                                        max-h-64 overflow-y-auto whitespace-pre-wrap break-words
+                                        bg-app/40">{generateSnippet(endpoint, getLang(endpoint.id))}</pre>
+                          {/if}
+                        </div>
+                      </div>
+
                     </div>
                   {/if}
                 </div>
@@ -308,3 +482,20 @@
 
   </div>
 </div>
+
+<style>
+  .snippet-highlight :global(pre) {
+    margin: 0;
+    padding: 0;
+    background: transparent !important;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 11px;
+    line-height: 1.625;
+    font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  }
+  .snippet-highlight :global(code) {
+    font-family: inherit;
+    font-size: inherit;
+  }
+</style>

@@ -82,6 +82,20 @@
   function handleExportModalKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape') exportingCollection = null;
   }
+
+  export function triggerImport() {
+    fileInput.click();
+  }
+
+  export function triggerExport() {
+    if ($collections.length === 1) {
+      exportingCollection = $collections[0];
+    } else if ($collections.length > 1) {
+      showExportPicker = true;
+    }
+  }
+
+  let showExportPicker = $state(false);
 </script>
 
 <svelte:window onkeydown={handleExportModalKeydown} />
@@ -94,39 +108,29 @@
   class="hidden"
 />
 
-<div class="flex items-center gap-1 px-3 py-2 border-t border-line">
-  <button
-    onclick={() => fileInput.click()}
-    class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[10px] font-krub
-           bg-surface border border-line-strong rounded text-ink-muted hover:text-ink hover:border-accent transition-colors"
+{#if showExportPicker}
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    onclick={() => showExportPicker = false}
   >
-    <Upload size={11} />
-    Import
-  </button>
-
-  <div class="relative group">
-    <button
-      class="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-[10px] font-krub
-             bg-surface border border-line-strong rounded text-ink-muted hover:text-ink hover:border-accent transition-colors"
+    <div
+      class="w-[280px] bg-surface border border-line rounded-xl shadow-2xl p-4"
+      onclick={(e) => e.stopPropagation()}
     >
-      <Download size={11} />
-      Export
-    </button>
-
-    {#if $collections.length > 0}
-      <div class="absolute bottom-full left-0 right-0 mb-1 bg-surface border border-line rounded shadow-lg hidden group-hover:block z-50">
+      <div class="text-xs font-krub text-ink-muted uppercase tracking-widest mb-3">Select collection</div>
+      <div class="space-y-0.5 max-h-60 overflow-y-auto">
         {#each $collections as col}
           <button
-            onclick={() => exportingCollection = col}
-            class="w-full px-3 py-2 text-left text-xs text-ink-muted hover:text-ink hover:bg-hover transition-colors"
+            onclick={() => { exportingCollection = col; showExportPicker = false; }}
+            class="w-full px-3 py-2 text-left text-xs text-ink-muted hover:text-ink hover:bg-hover rounded transition-colors"
           >
             {col.name}
           </button>
         {/each}
       </div>
-    {/if}
+    </div>
   </div>
-</div>
+{/if}
 
 {#if exportingCollection}
   <div

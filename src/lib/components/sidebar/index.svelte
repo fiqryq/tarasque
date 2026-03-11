@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { Plus, Search } from 'lucide-svelte';
+  import { Plus, Upload, Download } from 'lucide-svelte';
   import CollectionItem from './CollectionItem.svelte';
   import CollectionSettingsModal from '$lib/components/CollectionSettingsModal.svelte';
   import CollectionEnvironmentModal from '$lib/components/CollectionEnvironmentModal.svelte';
+  import ConfirmModal from '$lib/components/ConfirmModal.svelte';
   import ImportExport from './ImportExport.svelte';
   import {
     collections,
@@ -18,6 +19,9 @@
   let creating = $state(false);
   let settingsCollection = $state<Collection | null>(null);
   let environmentCollection = $state<Collection | null>(null);
+  let deleteCollectionId = $state<string | null>(null);
+  let deleteCollectionName = $state('');
+  let importExportRef: { triggerImport: () => void; triggerExport: () => void } | undefined;
 
   onMount(() => {
     refreshProxyStatus();
@@ -37,30 +41,70 @@
     if (e.key === 'Enter') handleCreate();
     if (e.key === 'Escape') { creating = false; newName = ''; }
   }
+
+  function confirmDeleteCollection(id: string, name: string) {
+    deleteCollectionId = id;
+    deleteCollectionName = name;
+  }
+
+  function executeDelete() {
+    if (deleteCollectionId) {
+      deleteCollection(deleteCollectionId);
+      deleteCollectionId = null;
+      deleteCollectionName = '';
+    }
+  }
 </script>
 
 <div class="flex flex-col h-full">
   <!-- Header -->
-  <div class="px-3 h-11 flex items-center justify-between border-b border-line shrink-0">
-    <span class="font-krub font-semibold text-[11px] text-ink-muted uppercase tracking-widest">Collections</span>
-    <button
-      onclick={() => { creating = true; }}
-      class="w-6 h-6 flex items-center justify-center rounded text-ink-dim hover:text-ink hover:bg-hover transition-colors duration-150"
-      title="New collection"
-    >
-      <Plus size={13} />
-    </button>
+  <div class="px-4 h-toolbar flex items-center justify-between shrink-0">
+    <span class="text-title text-ink">Collections</span>
+    <div class="flex items-center gap-1">
+      <button
+        onclick={() => importExportRef?.triggerImport()}
+        class="w-7 h-7 flex items-center justify-center rounded-md text-ink-tertiary
+               hover:text-ink-secondary hover:bg-[var(--color-hover)] transition-colors"
+        title="Import"
+        aria-label="Import collection"
+      >
+        <Upload size={14} />
+      </button>
+      <button
+        onclick={() => importExportRef?.triggerExport()}
+        class="w-7 h-7 flex items-center justify-center rounded-md text-ink-tertiary
+               hover:text-ink-secondary hover:bg-[var(--color-hover)] transition-colors"
+        title="Export"
+        aria-label="Export collection"
+      >
+        <Download size={14} />
+      </button>
+      <button
+        onclick={() => { creating = true; }}
+        class="w-7 h-7 flex items-center justify-center rounded-md text-accent
+               hover:bg-accent/10 transition-colors"
+        title="New collection"
+        aria-label="Create new collection"
+      >
+        <Plus size={16} />
+      </button>
+    </div>
   </div>
 
-  <!-- New collection input (inline) -->
+  <!-- Separator -->
+  <div class="hig-separator"></div>
+
+  <!-- New collection input -->
   {#if creating}
-    <div class="px-3 py-2 border-b border-line shrink-0">
+    <div class="px-4 py-3 shrink-0">
       <input
         bind:value={newName}
         onkeydown={handleKeydown}
-        placeholder="Collection name…"
-        class="w-full bg-surface text-ink text-xs px-2.5 py-1.5 rounded border border-line-strong
-               placeholder:text-ink-dim focus:outline-none focus:border-accent transition-colors duration-150"
+        placeholder="Collection name..."
+        aria-label="New collection name"
+        class="w-full bg-surface text-ink text-body px-3 py-2 rounded-hig-sm border border-line-strong
+               placeholder:text-ink-tertiary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/30
+               transition-all duration-200"
       />
     </div>
   {/if}
@@ -72,40 +116,46 @@
         {collection}
         active={$activeCollectionId === collection.id}
         onSelect={() => activeCollectionId.set(collection.id)}
-        onDelete={() => deleteCollection(collection.id)}
+        onDelete={() => confirmDeleteCollection(collection.id, collection.name)}
         onSettings={() => settingsCollection = collection}
         onEnvironments={() => environmentCollection = collection}
       />
     {/each}
 
     {#if $collections.length === 0 && !creating}
-      <div class="px-4 mt-8 text-center">
-        <p class="text-ink-dim text-[11px] leading-relaxed">No collections yet.<br/>Press + to create one.</p>
+      <div class="px-4 mt-12 text-center">
+        <p class="text-body text-ink-tertiary">No collections yet</p>
+        <button
+          onclick={() => creating = true}
+          class="mt-3 text-body text-accent hover:underline"
+        >
+          Create your first collection
+        </button>
       </div>
     {/if}
   </div>
 
-  <!-- Import/Export -->
-  <ImportExport />
+  <ImportExport bind:this={importExportRef} />
 
   <!-- Nginx Proxy Status -->
-  <div class="shrink-0 border-t border-line px-3 py-2.5 flex items-center gap-2">
-    <span class="w-1.5 h-1.5 rounded-full shrink-0 {
+  <div class="hig-separator"></div>
+  <div class="shrink-0 px-4 py-3 flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full shrink-0 {
       $proxyStatus === 'running' ? 'bg-run' :
-      $proxyStatus === 'stopped' ? 'bg-ink-dim' : 'bg-warn'
+      $proxyStatus === 'stopped' ? 'bg-ink-tertiary' : 'bg-warn'
     }"></span>
-    <span class="text-[10px] font-krub text-ink-dim flex-1 uppercase tracking-widest">nginx</span>
+    <span class="text-caption text-ink-tertiary flex-1 uppercase tracking-widest">Nginx</span>
     {#if $proxyLoading}
-      <span class="text-[10px] text-ink-dim">…</span>
+      <span class="text-caption text-ink-tertiary">...</span>
     {:else if $proxyStatus === 'running'}
       <button
         onclick={stopProxy}
-        class="text-[10px] font-krub text-ink-dim hover:text-err transition-colors"
+        class="text-caption text-ink-tertiary hover:text-err transition-colors"
       >Stop</button>
     {:else}
       <button
         onclick={startProxy}
-        class="text-[10px] font-krub text-ink-dim hover:text-run transition-colors"
+        class="text-caption text-ink-tertiary hover:text-run transition-colors"
       >Start</button>
     {/if}
   </div>
@@ -122,5 +172,15 @@
   <CollectionEnvironmentModal
     collection={environmentCollection}
     onclose={() => environmentCollection = null}
+  />
+{/if}
+
+{#if deleteCollectionId}
+  <ConfirmModal
+    title="Delete Collection"
+    message={`Are you sure you want to delete "${deleteCollectionName}"? This will also delete all endpoints and scenarios. This action cannot be undone.`}
+    confirmLabel="Delete Collection"
+    onConfirm={executeDelete}
+    onCancel={() => { deleteCollectionId = null; deleteCollectionName = ''; }}
   />
 {/if}

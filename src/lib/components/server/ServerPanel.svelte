@@ -22,10 +22,31 @@
   }
 </script>
 
-<div class="flex items-center gap-4 h-full w-full font-inter">
-  <!-- Port input + auto button -->
-  <div class="flex items-center gap-1.5">
-    <span class="text-[10px] font-krub text-ink-muted uppercase tracking-widest">Port</span>
+<div class="flex items-center gap-3 h-full w-full font-sf">
+  <!-- Start / Stop capsule -->
+  <button
+    onclick={toggle}
+    disabled={$activeServerStatus === 'starting' || !$activeCollection}
+    class="btn-capsule disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none
+           {$activeServerStatus === 'running'
+             ? 'bg-err/12 text-err hover:bg-err/18'
+             : 'btn-capsule-primary'}"
+  >
+    {#if $activeServerStatus === 'starting'}
+      <Loader2 size={14} class="animate-spin" />
+      <span>Starting</span>
+    {:else if $activeServerStatus === 'running'}
+      <Square size={10} fill="currentColor" />
+      <span>Stop</span>
+    {:else}
+      <Play size={12} fill="currentColor" />
+      <span>Start</span>
+    {/if}
+  </button>
+
+  <!-- Port config -->
+  <div class="flex items-center gap-1.5 bg-surface rounded-full px-3 py-1.5">
+    <span class="text-caption text-ink-tertiary">Port</span>
     <input
       id="server-port"
       type="number"
@@ -36,57 +57,34 @@
         if ($activeCollectionId) updateCollectionPort($activeCollectionId, Number(e.currentTarget.value));
       }}
       disabled={$activeServerStatus === 'running'}
-      class="w-16 bg-surface text-ink text-xs font-mono px-2 py-1 border border-line-strong rounded
-             focus:outline-none focus:border-accent transition-colors duration-150
-             disabled:opacity-30 disabled:cursor-not-allowed"
+      aria-label="Server port"
+      class="w-14 bg-transparent text-ink text-body font-mono text-center
+             focus:outline-none disabled:opacity-40 disabled:cursor-not-allowed"
     />
     <button
       onclick={autoPort}
       disabled={$activeServerStatus === 'running' || !$activeCollection}
-      class="w-6 h-6 flex items-center justify-center rounded text-ink-dim hover:text-ink
-             hover:bg-hover transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+      class="w-5 h-5 flex items-center justify-center rounded-full text-ink-tertiary hover:text-ink-secondary
+             transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
       title="Find a free port"
+      aria-label="Find a free port"
     >
-      <Shuffle size={11} />
+      <Shuffle size={12} />
     </button>
   </div>
 
-  <!-- Divider -->
-  <div class="w-px h-4 bg-line-strong"></div>
+  <div class="flex-1"></div>
 
-  <!-- Run / Stop button -->
-  <button
-    onclick={toggle}
-    disabled={$activeServerStatus === 'starting' || !$activeCollection}
-    class="flex items-center gap-1.5 h-7 px-3 rounded text-xs font-krub font-medium
-           transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed
-      {$activeServerStatus === 'running'
-        ? 'bg-err/10 text-err border border-err/20 hover:bg-err/20'
-        : 'bg-run/10 text-run border border-run/20 hover:bg-run/20'}"
-  >
-    {#if $activeServerStatus === 'starting'}
-      <Loader2 size={11} class="animate-spin" />
-      <span>starting</span>
-    {:else if $activeServerStatus === 'running'}
-      <Square size={11} />
-      <span>stop</span>
-    {:else}
-      <Play size={11} />
-      <span>run</span>
-    {/if}
-  </button>
-
-  <!-- Running indicator -->
+  <!-- Running status -->
   {#if $activeServerStatus === 'running' && $activeCollection}
-    <div class="flex items-center gap-1.5 text-[11px] font-mono text-run">
-      <span class="w-1.5 h-1.5 rounded-full bg-run animate-pulse inline-block"></span>
-      <span>localhost:{$activeCollection.port}</span>
+    <div class="flex items-center gap-2 text-caption font-mono text-run">
+      <span class="w-2 h-2 rounded-full bg-run animate-pulse"></span>
+      localhost:{$activeCollection.port}
     </div>
   {/if}
 
-  <!-- Error -->
   {#if $activeServerStatus === 'error' && $activeServerError}
-    <span class="text-[11px] text-err font-mono max-w-sm overflow-hidden" title={$activeServerError}>
+    <span class="text-caption text-err font-mono truncate max-w-[200px]" title={$activeServerError}>
       {$activeServerError}
     </span>
   {/if}

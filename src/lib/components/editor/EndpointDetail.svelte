@@ -75,6 +75,7 @@
       <select
         value={endpoint.method}
         onchange={(e) => onUpdate({ ...endpoint, method: e.currentTarget.value as Endpoint['method'] })}
+        aria-label="HTTP method"
         class="h-7 bg-surface text-xs font-mono font-bold px-2 border border-line-strong rounded
                focus:outline-none focus:border-accent transition-colors duration-150 cursor-pointer
                {METHOD_COLORS[endpoint.method]}"
@@ -87,6 +88,7 @@
         value={endpoint.path}
         oninput={(e) => onUpdate({ ...endpoint, path: e.currentTarget.value })}
         placeholder="/your/path/:id"
+        aria-label="Endpoint path"
         class="flex-1 h-7 bg-surface text-ink text-xs font-mono px-3 border border-line-strong rounded
                focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-ink-dim"
       />
@@ -95,6 +97,7 @@
       value={endpoint.description ?? ''}
       oninput={(e) => onUpdate({ ...endpoint, description: e.currentTarget.value || undefined })}
       placeholder="Description (optional)"
+      aria-label="Endpoint description"
       class="w-full h-6 bg-surface text-ink-dim text-[11px] px-3 border border-line rounded
              focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-ink-dim/40"
     />
@@ -133,7 +136,9 @@
           <button
             onclick={() => deleteScenario(scenario.id)}
             class="w-4 h-4 flex items-center justify-center text-ink-dim hover:text-err
-                   text-xs transition-colors duration-150 shrink-0 rounded hover:bg-err/10"
+                   text-xs transition-colors duration-150 shrink-0 rounded hover:bg-err/10
+                   focus:outline-none focus-visible:ring-2 focus-visible:ring-err"
+            aria-label="Delete scenario"
           >×</button>
         {/if}
       </div>

@@ -3,50 +3,147 @@
 @tailwind utilities;
 
 @layer base {
-  html, body, #app { height: 100%; margin: 0; padding: 0; }
+  /* CSS Custom Properties — HIG Dark (default) */
+  :root, [data-theme="dark"] {
+    --color-app: #000000;
+    --color-surface: #1C1C1E;
+    --color-surface-alt: #2C2C2E;
+    --color-hover: #3A3A3C;
+    --color-active: #48484A;
+    --color-line: rgba(255, 255, 255, 0.08);
+    --color-line-strong: rgba(255, 255, 255, 0.15);
+    --color-ink: #FFFFFF;
+    --color-ink-secondary: #AEAEB2;
+    --color-ink-tertiary: #636366;
+    --color-ink-quaternary: #48484A;
+    --glass-bg: rgba(28, 28, 30, 0.80);
+    --glass-border: rgba(255, 255, 255, 0.06);
+  }
+
+  /* HIG Light Mode */
+  [data-theme="light"] {
+    --color-app: #FFFFFF;
+    --color-surface: #F2F2F7;
+    --color-surface-alt: #E5E5EA;
+    --color-hover: #D1D1D6;
+    --color-active: #C7C7CC;
+    --color-line: rgba(0, 0, 0, 0.08);
+    --color-line-strong: rgba(0, 0, 0, 0.15);
+    --color-ink: #000000;
+    --color-ink-secondary: #3C3C43;
+    --color-ink-tertiary: #8E8E93;
+    --color-ink-quaternary: #C6C6C8;
+    --glass-bg: rgba(242, 242, 247, 0.80);
+    --glass-border: rgba(0, 0, 0, 0.06);
+  }
+
+  html, body, #app {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
 
   body {
-    background-color: #1d1d1f;
-    color: #f5f5f7;
-    font-family: 'Inter', sans-serif;
+    background-color: var(--color-app);
+    color: var(--color-ink);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Helvetica Neue', 'Inter', sans-serif;
     font-size: 13px;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     user-select: none;
   }
 
-  ::selection { background: #0066cc33; color: #f5f5f7; }
+  ::selection {
+    background: rgba(0, 122, 255, 0.25);
+  }
 
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  /* macOS-style scrollbars */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #48484a; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #636366; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-quaternary);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-tertiary);
+  }
 
   input[type='number']::-webkit-inner-spin-button,
-  input[type='number']::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+  }
 
   input, textarea { user-select: text; }
 
-  *:focus-visible { outline: 1px solid #0066cc40; outline-offset: 1px; }
+  *:focus-visible {
+    outline: 2px solid #007AFF;
+    outline-offset: -1px;
+    border-radius: 4px;
+  }
 }
 
-/* Light theme overrides */
-[data-theme="light"] {
-  --tw-bg-opacity: 1;
-}
+/* Liquid Glass utility */
+@layer utilities {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-color: var(--glass-border);
+  }
 
-[data-theme="light"] body {
-  background-color: #f2f2f7;
-  color: #1d1d1f;
-}
+  .glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    border: 0.5px solid var(--glass-border);
+    border-radius: 12px;
+  }
 
-[data-theme="light"] .bg-app    { background-color: #f2f2f7 !important; }
-[data-theme="light"] .bg-surface { background-color: #ffffff !important; }
-[data-theme="light"] .bg-hover  { background-color: #e5e5ea !important; }
-[data-theme="light"] .border-line { border-color: #d1d1d6 !important; }
-[data-theme="light"] .border-line-strong { border-color: #aeaeb2 !important; }
-[data-theme="light"] .text-ink       { color: #1d1d1f !important; }
-[data-theme="light"] .text-ink-muted { color: #3a3a3c !important; }
-[data-theme="light"] .text-ink-dim   { color: #636366 !important; }
-[data-theme="light"] .bg-\[#141414\]  { background-color: #e5e5ea !important; }
-[data-theme="light"] .bg-\[#191919\]  { background-color: #f2f2f7 !important; }
+  /* HIG capsule button */
+  .btn-capsule {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-capsule:hover {
+    transform: scale(0.97);
+  }
+
+  .btn-capsule:active {
+    transform: scale(0.95);
+  }
+
+  .btn-capsule-primary {
+    background-color: #007AFF;
+    color: white;
+  }
+
+  .btn-capsule-primary:hover {
+    background-color: #0066D6;
+  }
+
+  .btn-capsule-secondary {
+    background-color: var(--color-surface-alt);
+    color: var(--color-ink);
+  }
+
+  .btn-capsule-secondary:hover {
+    background-color: var(--color-hover);
+  }
+
+  /* HIG grouped list separator */
+  .hig-separator {
+    height: 0.5px;
+    background: var(--color-line);
+    margin-left: 16px;
+  }
+}
