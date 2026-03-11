@@ -1,7 +1,77 @@
-# Tauri + SvelteKit + TypeScript
+# Tarasque
 
-This template should help get you started developing with Tauri, SvelteKit and TypeScript in Vite.
+A desktop mock API server for designing, testing, and debugging HTTP endpoints. Built with Tauri v2, Rust, and Svelte 5.
 
-## Recommended IDE Setup
+## Features
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
+- Create and manage multiple API collections
+- Define endpoints with multiple response scenarios
+- Dynamic response templates with variables (`{{uuid}}`, `{{request.body.field}}`, etc.)
+- Scenario match rules (route by headers, query params, or body content)
+- Sequence mode to cycle responses on each request
+- Environment variables per collection
+- Proxy forwarding for unmatched routes
+- HTTPS alias with self-signed certificates
+- Request logging with detail view
+- OpenAPI/Swagger import
+- Export to JSON or Postman format
+- cURL import
+- Test suite runner with assertions
+- Hot-reload responses without restarting the server
+- Monaco editor for response body editing
+
+## Tech Stack
+
+- **Frontend**: Svelte 5, Tailwind CSS, Monaco Editor
+- **Backend**: Rust, Actix-web, Tokio
+- **Framework**: Tauri v2
+- **Package Manager**: Bun
+
+## Prerequisites
+
+- [Rust](https://rustup.rs/)
+- [Bun](https://bun.sh/)
+- [Tauri CLI prerequisites](https://v2.tauri.app/start/prerequisites/)
+
+## Development
+
+```bash
+# Install dependencies
+bun install
+
+# Run in development mode
+bun run tauri:dev
+```
+
+## Production Build
+
+```bash
+bun run tauri:build
+```
+
+Build output:
+- macOS: `src-tauri/target/release/bundle/macos/Tarasque.app`
+- DMG: `src-tauri/target/release/bundle/dmg/Tarasque_1.0.0_aarch64.dmg`
+
+## Project Structure
+
+```
+src/                    # Svelte frontend
+  lib/
+    components/
+      editor/           # Endpoint editor, scenario editor, Monaco
+      server/           # Server panel, logs, stats
+      sidebar/          # Collection list, running APIs, logs sidebar
+    stores/             # Svelte stores (collections, server, logs, settings)
+    types.ts            # TypeScript types
+src-tauri/              # Rust backend
+  src/
+    server/             # Actix-web mock server (router, state, rules, templates)
+    commands.rs         # Tauri commands
+    models.rs           # Data models
+    storage.rs          # File persistence
+```
+
+## License
+
+MIT
