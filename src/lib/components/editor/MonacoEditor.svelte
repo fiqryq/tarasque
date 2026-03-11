@@ -32,15 +32,42 @@
 
   function formatJson() {
     if (!editor || language !== 'json') return;
-    
+
+    const content = editor.getValue().trim();
+    if (!content) return;
+
+    // Try parsing as-is first
     try {
-      const content = editor.getValue();
       const parsed = JSON.parse(content);
+      const formatted = JSON.stringify(parsed, null, 2);
+      editor.setValue(formatted);
+      jsonError = null;
+      return;
+    } catch { /* fall through to fixups */ }
+
+    // Attempt common fixes: trailing commas, single quotes, unquoted keys
+    let fixed = content
+      .replace(/,\s*([\]}])/g, '$1')           // trailing commas
+      .replace(/'/g, '"')                        // single quotes → double quotes
+      .replace(/(\w+)\s*:/g, '"$1":');           // unquoted keys
+
+    try {
+      const parsed = JSON.parse(fixed);
       const formatted = JSON.stringify(parsed, null, 2);
       editor.setValue(formatted);
       jsonError = null;
     } catch (e) {
       jsonError = (e as Error).message;
+    }
+  }
+
+  function prettify() {
+    if (!editor) return;
+    if (language === 'json') {
+      formatJson();
+    } else {
+      // For non-JSON, use Monaco's built-in formatter
+      editor.getAction('editor.action.formatDocument')?.run();
     }
   }
 
@@ -93,17 +120,22 @@
 
 <div class="h-full w-full flex flex-col">
   <div bind:this={container} class="flex-1 min-h-0"></div>
-  
-  {#if jsonError}
-    <div class="px-3 py-2 bg-rose-500/10 border-t border-rose-500/30 flex items-start gap-2">
-      <span class="text-rose-400 text-[11px] font-mono shrink-0">✕</span>
-      <span class="text-rose-400 text-[11px] font-mono truncate">{jsonError}</span>
-      <button
-        onclick={formatJson}
-        class="ml-auto px-2 py-1 text-[10px] font-mono bg-rose-500/20 text-rose-400 rounded hover:bg-rose-500/30 transition-colors shrink-0"
-      >
-        Format
-      </button>
-    </div>
-  {/if}
+
+  <div class="px-3 py-1.5 border-t border-line flex items-center gap-2 bg-surface">
+    {#if jsonError}
+      <span class="text-rose-400 text-[10px] font-mono shrink-0">✕</span>
+      <span class="text-rose-400 text-[10px] font-mono truncate flex-1">{jsonError}</span>
+    {:else}
+      <span class="flex-1"></span>
+    {/if}
+    <button
+      onclick={prettify}
+      class="px-2 py-0.5 text-[10px] font-mono rounded transition-colors shrink-0
+        {jsonError
+          ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30'
+          : 'bg-accent/10 text-accent hover:bg-accent/20'}"
+    >
+      Prettify
+    </button>
+  </div>
 </div>

@@ -1,8 +1,6 @@
 <script lang="ts">
   import { Plus, Upload, Download } from 'lucide-svelte';
   import CollectionItem from './CollectionItem.svelte';
-  import CollectionSettingsModal from '$lib/components/CollectionSettingsModal.svelte';
-  import CollectionEnvironmentModal from '$lib/components/CollectionEnvironmentModal.svelte';
   import ConfirmModal from '$lib/components/ConfirmModal.svelte';
   import ImportExport from './ImportExport.svelte';
   import {
@@ -15,10 +13,15 @@
   import { proxyStatus, proxyLoading, startProxy, stopProxy, refreshProxyStatus } from '$lib/stores/proxy';
   import { onMount } from 'svelte';
 
+  interface Props {
+    onOpenSettings?: (collection: Collection) => void;
+    onOpenEnvironments?: (collection: Collection) => void;
+  }
+
+  let { onOpenSettings, onOpenEnvironments }: Props = $props();
+
   let newName = $state('');
   let creating = $state(false);
-  let settingsCollection = $state<Collection | null>(null);
-  let environmentCollection = $state<Collection | null>(null);
   let deleteCollectionId = $state<string | null>(null);
   let deleteCollectionName = $state('');
   let importExportRef: { triggerImport: () => void; triggerExport: () => void } | undefined;
@@ -117,8 +120,8 @@
         active={$activeCollectionId === collection.id}
         onSelect={() => activeCollectionId.set(collection.id)}
         onDelete={() => confirmDeleteCollection(collection.id, collection.name)}
-        onSettings={() => settingsCollection = collection}
-        onEnvironments={() => environmentCollection = collection}
+        onSettings={() => onOpenSettings?.(collection)}
+        onEnvironments={() => onOpenEnvironments?.(collection)}
       />
     {/each}
 
@@ -160,20 +163,6 @@
     {/if}
   </div>
 </div>
-
-{#if settingsCollection}
-  <CollectionSettingsModal
-    collection={settingsCollection}
-    onClose={() => settingsCollection = null}
-  />
-{/if}
-
-{#if environmentCollection}
-  <CollectionEnvironmentModal
-    collection={environmentCollection}
-    onclose={() => environmentCollection = null}
-  />
-{/if}
 
 {#if deleteCollectionId}
   <ConfirmModal

@@ -16,6 +16,7 @@ fn main() {
             commands::save_data,
             commands::start_server,
             commands::stop_server,
+            commands::update_running_collection,
             commands::get_running_collections,
             commands::find_free_port,
             commands::import_openapi,

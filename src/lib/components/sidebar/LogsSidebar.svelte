@@ -223,7 +223,7 @@
       {#each filteredLogs as log (log.timestamp + log.method + log.path)}
         <button
           onclick={() => onSelect(log)}
-          class="w-full text-left px-3 py-2 flex items-center gap-2 border-b border-line/30
+          class="w-full text-left px-3 py-2 flex items-center gap-2 border-b border-line
                  transition-colors duration-100 group
                  {isSelected(log) ? 'bg-accent/12 border-l-2 border-l-accent' : 'border-l-2 border-l-transparent hover:bg-[var(--color-hover)]'}"
         >

@@ -340,7 +340,7 @@
     <!-- Params tab -->
     {#if activeTab === 'params'}
       <div class="flex flex-col h-full overflow-hidden">
-        <div class="flex items-center px-4 py-1 bg-app/40 border-b border-line/40 shrink-0">
+        <div class="flex items-center px-4 py-1 bg-app/40 border-b border-line shrink-0">
           <div class="w-5 shrink-0"></div>
           <span class="flex-1 text-[9px] font-krub text-ink-dim uppercase tracking-wider">Key</span>
           <span class="flex-1 text-[9px] font-krub text-ink-dim uppercase tracking-wider">Example value</span>
@@ -348,7 +348,7 @@
         </div>
         <div class="flex-1 overflow-y-auto" role="list" aria-label="Query parameters">
           {#each Object.entries(queryParams) as [key, val] (key)}
-            <div class="flex items-center px-4 border-b border-line/30 group hover:bg-hover/20">
+            <div class="flex items-center px-4 border-b border-line group hover:bg-hover/20">
               <div class="w-5 shrink-0 flex items-center">
                 <span class="w-1 h-1 rounded-full bg-accent/60 shrink-0"></span>
               </div>
@@ -402,7 +402,7 @@
 
         <!-- Footer hint -->
         {#if Object.keys(queryParams).length > 0}
-          <div class="px-4 py-2 border-t border-line/40 shrink-0">
+          <div class="px-4 py-2 border-t border-line shrink-0">
             <p class="text-[10px] text-ink-dim">
               Access in body: <code class="text-accent">{"{{request.query.key}}"}</code>
             </p>
@@ -414,7 +414,7 @@
     <!-- Headers tab -->
     {#if activeTab === 'headers'}
       <div class="flex flex-col h-full overflow-hidden">
-        <div class="flex items-center px-4 py-1 bg-app/40 border-b border-line/40 shrink-0">
+        <div class="flex items-center px-4 py-1 bg-app/40 border-b border-line shrink-0">
           <div class="w-5 shrink-0"></div>
           <span class="flex-1 text-[9px] font-krub text-ink-dim uppercase tracking-wider">Key</span>
           <span class="flex-1 text-[9px] font-krub text-ink-dim uppercase tracking-wider">Value</span>
@@ -422,7 +422,7 @@
         </div>
         <div class="flex-1 overflow-y-auto" role="list" aria-label="Response headers">
           {#each Object.entries(scenario.headers) as [key, val] (key)}
-            <div class="flex items-center px-4 border-b border-line/30 group hover:bg-hover/20">
+            <div class="flex items-center px-4 border-b border-line group hover:bg-hover/20">
               <div class="w-5 shrink-0 flex items-center">
                 <span class="w-1 h-1 rounded-full bg-run/60 shrink-0"></span>
               </div>

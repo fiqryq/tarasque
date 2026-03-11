@@ -49,7 +49,7 @@
       </thead>
       <tbody>
         {#each Object.entries(stats) as [key, s]}
-          <tr class="border-b border-line/50 hover:bg-hover/30 transition-colors">
+          <tr class="border-b border-line hover:bg-hover/30 transition-colors">
             <td class="px-3 py-1 text-ink">{key}</td>
             <td class="px-3 py-1 text-right text-ink">{s.count}</td>
             <td class="px-3 py-1 text-right {s.error_count > 0 ? 'text-err' : 'text-ink-dim'}">{s.error_count}</td>

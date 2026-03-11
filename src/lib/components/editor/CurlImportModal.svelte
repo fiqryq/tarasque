@@ -35,11 +35,11 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <div
-  class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+  class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
   onclick={onclose}
 >
   <div
-    class="bg-surface border border-line rounded-xl w-[520px] shadow-2xl"
+    class="bg-surface border border-line rounded-xl w-[440px] shadow-hig-dark"
     onclick={(e) => e.stopPropagation()}
   >
     <div class="flex items-center justify-between px-4 py-3 border-b border-line">

@@ -37,7 +37,7 @@
   aria-describedby="confirm-message"
 >
   <div
-    class="glass-card w-[380px] shadow-hig-dark overflow-hidden"
+    class="w-[380px] bg-surface border border-line rounded-xl shadow-hig-dark overflow-hidden"
     onclick={(e) => e.stopPropagation()}
   >
     <div class="p-6">

@@ -43,11 +43,30 @@ pub async fn start(
         }
     }
 
+    // Shared collection arc — both HTTP and HTTPS servers read from the same reference.
+    // Hot-reload writes to this arc so both servers see updated responses immediately.
+    let collection_arc = Arc::new(RwLock::new(collection));
+
     let mut https_shutdown: Option<oneshot::Sender<()>> = None;
 
-    if collection.alias_enabled {
+    let col_snapshot = collection_arc.read().await;
+    let alias_enabled = col_snapshot.alias_enabled;
+    let alias_port = col_snapshot.alias_port.unwrap_or(8443);
+    let alias_cert_pem = col_snapshot.alias_cert_pem.clone();
+    let alias_key_pem = col_snapshot.alias_key_pem.clone();
+    drop(col_snapshot);
+
+    if alias_enabled {
+        let cert_pem = match alias_cert_pem {
+            Some(p) if !p.is_empty() => p,
+            _ => return Err("No certificate found. Generate one first in Collection Settings.".to_string()),
+        };
+        let key_pem = match alias_key_pem {
+            Some(k) if !k.is_empty() => k,
+            _ => return Err("No private key found.".to_string()),
+        };
         let (startup_tx, startup_rx) = oneshot::channel::<Result<oneshot::Sender<()>, String>>();
-        spawn_https_server(collection.clone(), app_handle.clone(), startup_tx);
+        spawn_https_server(collection_arc.clone(), app_handle.clone(), startup_tx, alias_port, cert_pem, key_pem);
         match tokio::time::timeout(std::time::Duration::from_secs(10), startup_rx).await {
             Ok(Ok(Ok(shutdown_tx))) => { https_shutdown = Some(shutdown_tx); }
             Ok(Ok(Err(e))) => return Err(e),
@@ -57,7 +76,7 @@ pub async fn start(
     }
 
     let (startup_tx, startup_rx) = oneshot::channel::<Result<oneshot::Sender<()>, String>>();
-    spawn_http_server(http_port, collection, app_handle, startup_tx);
+    spawn_http_server(http_port, collection_arc.clone(), app_handle, startup_tx);
 
     match tokio::time::timeout(std::time::Duration::from_secs(10), startup_rx).await {
         Ok(Ok(Ok(shutdown_tx))) => {
@@ -65,6 +84,7 @@ pub async fn start(
             handles.insert(collection_id, CollectionHandle {
                 http: shutdown_tx,
                 https: https_shutdown,
+                collection: collection_arc,
             });
             Ok(())
         }
@@ -78,14 +98,14 @@ pub async fn start(
 /// Sends `Ok(shutdown_sender)` on successful bind or `Err(message)` on failure.
 fn spawn_http_server(
     port: u16,
-    collection: Collection,
+    collection_arc: Arc<RwLock<Collection>>,
     app_handle: tauri::AppHandle,
     startup_tx: oneshot::Sender<Result<oneshot::Sender<()>, String>>,
 ) {
     std::thread::spawn(move || {
         actix_web::rt::System::new().block_on(async move {
             let state_data = web::Data::new(AppState {
-                collection: Arc::new(RwLock::new(collection)),
+                collection: collection_arc,
                 app_handle,
                 store: Arc::new(RwLock::new(HashMap::new())),
                 stats: Arc::new(RwLock::new(HashMap::new())),
@@ -131,31 +151,18 @@ fn spawn_http_server(
 }
 
 /// Spawns an actix-web HTTPS server on its own OS thread.
+/// Accepts a shared collection arc so HTTP and HTTPS servers see the same data.
+/// TLS fields are passed separately to avoid blocking reads from async context.
 fn spawn_https_server(
-    collection: Collection,
+    collection_arc: Arc<RwLock<Collection>>,
     app_handle: tauri::AppHandle,
     startup_tx: oneshot::Sender<Result<oneshot::Sender<()>, String>>,
+    alias_port: u16,
+    cert_pem: String,
+    key_pem: String,
 ) {
     use rustls::ServerConfig;
     use std::io::BufReader;
-
-    let alias_port = collection.alias_port.unwrap_or(8443);
-    let cert_pem = match collection.alias_cert_pem.clone() {
-        Some(p) if !p.is_empty() => p,
-        _ => {
-            let _ = startup_tx.send(Err(
-                "No certificate found. Generate one first in Collection Settings.".to_string(),
-            ));
-            return;
-        }
-    };
-    let key_pem = match collection.alias_key_pem.clone() {
-        Some(k) if !k.is_empty() => k,
-        _ => {
-            let _ = startup_tx.send(Err("No private key found.".to_string()));
-            return;
-        }
-    };
 
     // Parse TLS material synchronously before spawning the thread (better error messages)
     let certs: Vec<rustls::pki_types::CertificateDer<'static>> =
@@ -195,7 +202,7 @@ fn spawn_https_server(
     std::thread::spawn(move || {
         actix_web::rt::System::new().block_on(async move {
             let state_data = web::Data::new(AppState {
-                collection: Arc::new(RwLock::new(collection)),
+                collection: collection_arc,
                 app_handle,
                 store: Arc::new(RwLock::new(HashMap::new())),
                 stats: Arc::new(RwLock::new(HashMap::new())),

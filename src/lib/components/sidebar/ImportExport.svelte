@@ -110,11 +110,11 @@
 
 {#if showExportPicker}
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
     onclick={() => showExportPicker = false}
   >
     <div
-      class="w-[280px] bg-surface border border-line rounded-xl shadow-2xl p-4"
+      class="w-[280px] bg-surface border border-line rounded-xl shadow-hig-dark p-4"
       onclick={(e) => e.stopPropagation()}
     >
       <div class="text-xs font-krub text-ink-muted uppercase tracking-widest mb-3">Select collection</div>
@@ -134,11 +134,11 @@
 
 {#if exportingCollection}
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
     onclick={() => exportingCollection = null}
   >
     <div
-      class="w-[300px] bg-surface border border-line rounded-xl shadow-2xl p-4"
+      class="w-[300px] bg-surface border border-line rounded-xl shadow-hig-dark p-4"
       onclick={(e) => e.stopPropagation()}
     >
       <div class="text-sm font-krub text-ink mb-3">Export: {exportingCollection.name}</div>

@@ -90,12 +90,17 @@ function scheduleAutoSave() {
 }
 
 async function persistData() {
+  const cols = get(collections);
   const data: AppData = {
-    collections: get(collections),
+    collections: cols,
     active_collection_id: get(activeCollectionId),
   };
   try {
     await invoke('save_data', { data });
+    // Hot-reload: sync each collection to its running server (if any)
+    for (const col of cols) {
+      invoke('update_running_collection', { collection: col }).catch(() => {});
+    }
   } catch (e) {
     console.error('Auto-save failed:', e);
   }

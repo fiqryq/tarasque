@@ -125,7 +125,7 @@
     <div class="border border-line rounded-hig overflow-hidden bg-surface">
 
       {#if activeTab === 'response' && hasResponse}
-        <div class="flex items-center justify-between px-4 py-2 border-b border-line/50">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-line">
           <span class="text-caption text-ink-tertiary uppercase tracking-widest">Response Body</span>
           <button
             onclick={() => copyText('response', log.response_body ?? '')}
@@ -145,7 +145,7 @@
       {/if}
 
       {#if activeTab === 'headers' && hasHeaders}
-        <div class="flex items-center justify-between px-4 py-2 border-b border-line/50">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-line">
           <span class="text-caption text-ink-tertiary uppercase tracking-widest">Request Headers</span>
           <button
             onclick={() => copyText('headers', Object.entries(log.headers).map(([k, v]) => `${k}: ${v}`).join('\n'))}
@@ -158,7 +158,7 @@
             {/if}
           </button>
         </div>
-        <div class="divide-y divide-line/30">
+        <div class="divide-y divide-line">
           {#each Object.entries(log.headers) as [key, val]}
             <div class="flex items-start gap-3 px-4 py-2 hover:bg-[var(--color-hover)] transition-colors">
               <span class="text-body font-mono text-accent shrink-0 w-48 truncate" title={key}>{key}</span>
@@ -169,10 +169,10 @@
       {/if}
 
       {#if activeTab === 'query' && hasQuery}
-        <div class="px-4 py-2 border-b border-line/50">
+        <div class="px-4 py-2 border-b border-line">
           <span class="text-caption text-ink-tertiary uppercase tracking-widest">Query Parameters</span>
         </div>
-        <div class="divide-y divide-line/30">
+        <div class="divide-y divide-line">
           {#each Object.entries(log.query) as [key, val]}
             <div class="flex items-start gap-3 px-4 py-2 hover:bg-[var(--color-hover)] transition-colors">
               <span class="text-body font-mono text-accent shrink-0 w-32">{key}</span>
@@ -183,7 +183,7 @@
       {/if}
 
       {#if activeTab === 'request' && hasBody}
-        <div class="flex items-center justify-between px-4 py-2 border-b border-line/50">
+        <div class="flex items-center justify-between px-4 py-2 border-b border-line">
           <span class="text-caption text-ink-tertiary uppercase tracking-widest">Request Body</span>
           <button
             onclick={() => copyText('request', log.body)}

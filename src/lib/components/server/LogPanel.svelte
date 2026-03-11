@@ -200,7 +200,7 @@
       {:else}
       <div bind:this={logContainer} class="flex-1 overflow-y-auto font-mono text-[11px]">
         {#each $logs as log (log.timestamp + log.path)}
-          <div class="border-b border-line/50">
+          <div class="border-b border-line">
             <!-- Log Row -->
             <div 
               class="flex items-center gap-2 px-3 py-1.5 hover:bg-hover/40 transition-colors cursor-pointer group"

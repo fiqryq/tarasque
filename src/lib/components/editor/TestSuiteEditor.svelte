@@ -153,7 +153,7 @@
 
         <!-- Expanded detail -->
         {#if expandedCases.has(tc.id)}
-          <div class="border-t border-line/50 px-4 py-3 space-y-3 bg-app/40">
+          <div class="border-t border-line px-4 py-3 space-y-3 bg-app/40">
             <!-- Assertions -->
             <div class="space-y-1.5">
               <span class="text-[9px] font-krub text-ink-dim uppercase tracking-widest">Assertions</span>

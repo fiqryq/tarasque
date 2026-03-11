@@ -27,10 +27,13 @@ pub struct AppState {
     pub sequence_counters: Arc<RwLock<HashMap<String, usize>>>,
 }
 
-/// Per-collection shutdown handles.
+/// Per-collection shutdown handles + live collection reference for hot-reload.
 pub struct CollectionHandle {
     pub http:  oneshot::Sender<()>,
     pub https: Option<oneshot::Sender<()>>,
+    /// Shared reference to the running server's collection data.
+    /// Writing to this updates responses without restarting the server.
+    pub collection: Arc<RwLock<Collection>>,
 }
 
 /// Global registry of all running collection servers.

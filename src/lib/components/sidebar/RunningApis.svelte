@@ -68,7 +68,7 @@
       </div>
     {:else}
       {#each runningCollections as collection (collection.id)}
-        <div class="border-b border-line/40 last:border-0">
+        <div class="border-b border-line last:border-0">
           <!-- Collection row -->
           <button
             onclick={() => { toggle(collection.id); onSelect(collection.id); }}

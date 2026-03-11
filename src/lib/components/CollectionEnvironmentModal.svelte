@@ -78,11 +78,11 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <div
-  class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+  class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
   onclick={onclose}
 >
   <div
-    class="bg-surface border border-line rounded-xl w-[640px] shadow-2xl max-h-[80vh] flex flex-col"
+    class="bg-surface border border-line rounded-xl w-[440px] shadow-hig-dark max-h-[85vh] flex flex-col"
     onclick={(e) => e.stopPropagation()}
   >
     <!-- Header -->

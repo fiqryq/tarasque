@@ -5,7 +5,7 @@
 @layer base {
   /* CSS Custom Properties — HIG Dark (default) */
   :root, [data-theme="dark"] {
-    --color-app: #000000;
+    --color-app: #181818;
     --color-surface: #1C1C1E;
     --color-surface-alt: #2C2C2E;
     --color-hover: #3A3A3C;

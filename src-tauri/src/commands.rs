@@ -42,6 +42,22 @@ pub async fn stop_server(
 }
 
 #[tauri::command]
+pub async fn update_running_collection(
+    multi: State<'_, MultiServerHandle>,
+    collection: Collection,
+) -> Result<(), String> {
+    let handles = multi.handles.lock().await;
+    if let Some(handle) = handles.get(&collection.id) {
+        let mut col = handle.collection.write().await;
+        *col = collection;
+        Ok(())
+    } else {
+        // Server not running — nothing to update
+        Ok(())
+    }
+}
+
+#[tauri::command]
 pub async fn get_running_collections(
     multi: State<'_, MultiServerHandle>,
 ) -> Result<Vec<String>, String> {

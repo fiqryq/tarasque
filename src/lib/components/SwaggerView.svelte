@@ -289,7 +289,7 @@
 
           <!-- Endpoints -->
           {#if isGroupExpanded(tag)}
-            <div class="divide-y divide-line/50">
+            <div class="divide-y divide-line">
               {#each endpoints as endpoint (endpoint.id)}
                 {@const style = METHOD_STYLE[endpoint.method] ?? METHOD_STYLE.GET}
                 {@const isOpen = !!expanded[endpoint.id]}
@@ -352,7 +352,7 @@
                   <!-- Expanded detail -->
                   {#if isOpen}
                     {@const paramsScenario = endpoint.scenarios.find(s => Object.keys(s.query_params ?? {}).length > 0)}
-                    <div class="border-t border-line/50 bg-app/60 px-4 py-4 space-y-4">
+                    <div class="border-t border-line bg-app/60 px-4 py-4 space-y-4">
 
                       <!-- Full URL -->
                       <div class="flex items-center gap-2">
@@ -365,13 +365,13 @@
                         <div>
                           <span class="text-[9px] font-krub text-ink-dim uppercase tracking-widest block mb-2">Parameters</span>
                           <div class="border border-line rounded-lg overflow-hidden">
-                            <div class="flex items-center px-3 py-1 bg-surface/80 border-b border-line/50">
+                            <div class="flex items-center px-3 py-1 bg-surface/80 border-b border-line">
                               <span class="text-[9px] font-krub text-ink-dim uppercase w-28">Name</span>
                               <span class="text-[9px] font-krub text-ink-dim uppercase w-20">In</span>
                               <span class="text-[9px] font-krub text-ink-dim uppercase flex-1">Example</span>
                             </div>
                             {#each Object.entries(paramsScenario.query_params ?? {}) as [key, val] (key)}
-                              <div class="flex items-center px-3 py-1.5 border-b border-line/30 last:border-0 hover:bg-hover/20">
+                              <div class="flex items-center px-3 py-1.5 border-b border-line last:border-0 hover:bg-hover/20">
                                 <span class="text-[11px] font-mono text-accent w-28 truncate">{key}</span>
                                 <span class="text-[10px] font-mono text-ink-dim w-20">query</span>
                                 <span class="text-[11px] font-mono text-ink-muted flex-1">{val || '—'}</span>
@@ -388,7 +388,7 @@
                           {#each endpoint.scenarios as scenario (scenario.id)}
                             <div class="border border-line rounded-lg overflow-hidden">
                               <!-- Scenario header -->
-                              <div class="flex items-center gap-3 px-3 py-2 bg-surface/60 border-b border-line/50">
+                              <div class="flex items-center gap-3 px-3 py-2 bg-surface/60 border-b border-line">
                                 <span class="text-[10px] font-mono font-semibold px-2 py-0.5 rounded border {statusStyle(scenario.status)}">
                                   {scenario.status} {STATUS_TEXT[scenario.status] ?? ''}
                                 </span>
@@ -403,7 +403,7 @@
 
                               <!-- Response headers -->
                               {#if Object.keys(scenario.headers).length > 0}
-                                <div class="px-3 py-2 border-b border-line/30">
+                                <div class="px-3 py-2 border-b border-line">
                                   {#each Object.entries(scenario.headers) as [k, v] (k)}
                                     <div class="flex items-center gap-2 text-[10px] font-mono py-0.5">
                                       <span class="text-ink-dim w-40 shrink-0 truncate">{k}</span>
@@ -444,7 +444,7 @@
                           </button>
                         </div>
                         <div class="border border-line rounded-lg overflow-hidden">
-                          <div class="flex items-center gap-0.5 px-2 py-1.5 bg-surface/80 border-b border-line/50 overflow-x-auto">
+                          <div class="flex items-center gap-0.5 px-2 py-1.5 bg-surface/80 border-b border-line overflow-x-auto">
                             {#each LANGS as { key, label }}
                               <button
                                 onclick={() => snippetLang[endpoint.id] = key}
